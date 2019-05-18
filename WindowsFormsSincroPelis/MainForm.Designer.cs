@@ -52,6 +52,7 @@
             // 
             // pName
             // 
+            this.pName.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.pName.Location = new System.Drawing.Point(688, 12);
             this.pName.Name = "pName";
             this.pName.Size = new System.Drawing.Size(100, 20);
@@ -61,6 +62,7 @@
             // 
             // label1
             // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(544, 15);
             this.label1.Name = "label1";
@@ -87,9 +89,9 @@
             // 
             // buttonConnect
             // 
-            this.buttonConnect.Location = new System.Drawing.Point(194, 6);
+            this.buttonConnect.Location = new System.Drawing.Point(194, 7);
             this.buttonConnect.Name = "buttonConnect";
-            this.buttonConnect.Size = new System.Drawing.Size(126, 31);
+            this.buttonConnect.Size = new System.Drawing.Size(96, 29);
             this.buttonConnect.TabIndex = 5;
             this.buttonConnect.Text = "Conectar";
             this.buttonConnect.UseVisualStyleBackColor = true;
@@ -107,6 +109,7 @@
             // 
             // buttonSearch
             // 
+            this.buttonSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.buttonSearch.Location = new System.Drawing.Point(688, 39);
             this.buttonSearch.Name = "buttonSearch";
             this.buttonSearch.Size = new System.Drawing.Size(100, 25);
@@ -120,9 +123,9 @@
             this.checkBoxMaestro.AutoSize = true;
             this.checkBoxMaestro.Location = new System.Drawing.Point(16, 47);
             this.checkBoxMaestro.Name = "checkBoxMaestro";
-            this.checkBoxMaestro.Size = new System.Drawing.Size(94, 17);
+            this.checkBoxMaestro.Size = new System.Drawing.Size(164, 17);
             this.checkBoxMaestro.TabIndex = 9;
-            this.checkBoxMaestro.Text = "Modo Maestro";
+            this.checkBoxMaestro.Text = "Modo Maestro (Puerto: 9000)";
             this.checkBoxMaestro.UseVisualStyleBackColor = true;
             // 
             // MainForm
