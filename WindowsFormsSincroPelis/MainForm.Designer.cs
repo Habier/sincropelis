@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.button1 = new System.Windows.Forms.Button();
+            this.pauseButton = new System.Windows.Forms.Button();
             this.pName = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
@@ -40,15 +40,15 @@
             this.checkBoxMaestro = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
-            // button1
+            // pauseButton
             // 
-            this.button1.Location = new System.Drawing.Point(268, 361);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(271, 50);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Pausar/Reanudar";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.pauseButton.Location = new System.Drawing.Point(268, 361);
+            this.pauseButton.Name = "pauseButton";
+            this.pauseButton.Size = new System.Drawing.Size(271, 50);
+            this.pauseButton.TabIndex = 0;
+            this.pauseButton.Text = "Pausar/Reanudar";
+            this.pauseButton.UseVisualStyleBackColor = true;
+            this.pauseButton.Click += new System.EventHandler(this.pauseButton_Click);
             // 
             // pName
             // 
@@ -138,7 +138,7 @@
             this.Controls.Add(this.textHost);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.pName);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.pauseButton);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "MainForm";
             this.Text = "Pinículas Sincronizadas";
@@ -151,7 +151,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button pauseButton;
         private System.Windows.Forms.TextBox pName;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;

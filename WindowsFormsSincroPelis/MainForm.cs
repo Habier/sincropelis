@@ -31,7 +31,7 @@ namespace SincroPelis
             InitializeComponent();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void pauseButton_Click(object sender, EventArgs e)
         {
             //Cheats.SendKey2Process(pName.Text);
             Program.client.TrySend();
