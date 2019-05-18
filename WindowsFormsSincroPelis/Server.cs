@@ -18,7 +18,7 @@ namespace SincroPelis
 
         private byte[] _buffer = new byte[_BUFFER_SIZE];
 
-        public void Connect()
+        public void start()
         {
             Console.WriteLine("Servidor Socket ON");
             _serverSocket.Bind(new IPEndPoint(IPAddress.Any, PORT));
@@ -26,7 +26,12 @@ namespace SincroPelis
             _serverSocket.BeginAccept(AcceptCallback, null);
         }
 
-
+        public void startAndConnect()
+        {
+            Program.server.start();
+            Program.client.TryConnect("127.0.0.1");
+        }
+        
         private void Send2All()
         {
             foreach (Socket socket in socketList)
