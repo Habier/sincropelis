@@ -103,5 +103,10 @@ namespace SincroPelis
 
             e.Cancel = (result == DialogResult.No);
         }
+
+        private void checkBoxMaestro_CheckedChanged(object sender, EventArgs e)
+        {
+            textHost.Enabled = !checkBoxMaestro.Checked;
+        }
     }
 }

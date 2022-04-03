@@ -127,6 +127,7 @@
             this.checkBoxMaestro.TabIndex = 9;
             this.checkBoxMaestro.Text = "Modo Maestro (Puerto: 9000)";
             this.checkBoxMaestro.UseVisualStyleBackColor = true;
+            this.checkBoxMaestro.CheckedChanged += new System.EventHandler(this.checkBoxMaestro_CheckedChanged);
             // 
             // MainForm
             // 
