@@ -38,6 +38,8 @@
             this.labelDebug = new System.Windows.Forms.Label();
             this.buttonSearch = new System.Windows.Forms.Button();
             this.checkBoxMaestro = new System.Windows.Forms.CheckBox();
+            this.textBoxPort = new System.Windows.Forms.TextBox();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // pauseButton
@@ -75,13 +77,13 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(13, 15);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(69, 13);
+            this.label2.Size = new System.Drawing.Size(32, 13);
             this.label2.TabIndex = 4;
-            this.label2.Text = "Host Remoto";
+            this.label2.Text = "Host:";
             // 
             // textHost
             // 
-            this.textHost.Location = new System.Drawing.Point(88, 12);
+            this.textHost.Location = new System.Drawing.Point(51, 12);
             this.textHost.Name = "textHost";
             this.textHost.Size = new System.Drawing.Size(100, 20);
             this.textHost.TabIndex = 3;
@@ -89,7 +91,7 @@
             // 
             // buttonConnect
             // 
-            this.buttonConnect.Location = new System.Drawing.Point(194, 7);
+            this.buttonConnect.Location = new System.Drawing.Point(252, 7);
             this.buttonConnect.Name = "buttonConnect";
             this.buttonConnect.Size = new System.Drawing.Size(96, 29);
             this.buttonConnect.TabIndex = 5;
@@ -123,17 +125,39 @@
             this.checkBoxMaestro.AutoSize = true;
             this.checkBoxMaestro.Location = new System.Drawing.Point(16, 47);
             this.checkBoxMaestro.Name = "checkBoxMaestro";
-            this.checkBoxMaestro.Size = new System.Drawing.Size(164, 17);
+            this.checkBoxMaestro.Size = new System.Drawing.Size(138, 17);
             this.checkBoxMaestro.TabIndex = 9;
-            this.checkBoxMaestro.Text = "Modo Maestro (Puerto: 9000)";
+            this.checkBoxMaestro.Text = "Conectar como servidor";
             this.checkBoxMaestro.UseVisualStyleBackColor = true;
             this.checkBoxMaestro.CheckedChanged += new System.EventHandler(this.checkBoxMaestro_CheckedChanged);
+            // 
+            // textBoxPort
+            // 
+            this.textBoxPort.Location = new System.Drawing.Point(192, 12);
+            this.textBoxPort.MaxLength = 6;
+            this.textBoxPort.Name = "textBoxPort";
+            this.textBoxPort.Size = new System.Drawing.Size(42, 20);
+            this.textBoxPort.TabIndex = 10;
+            this.textBoxPort.Text = "9000";
+            this.textBoxPort.TextChanged += new System.EventHandler(this.textBoxPort_TextChanged);
+            this.textBoxPort.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBoxPort_KeyPress);
+            // 
+            // label3
+            // 
+            this.label3.AutoSize = true;
+            this.label3.Location = new System.Drawing.Point(157, 15);
+            this.label3.Name = "label3";
+            this.label3.Size = new System.Drawing.Size(29, 13);
+            this.label3.TabIndex = 11;
+            this.label3.Text = "Port:";
             // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.label3);
+            this.Controls.Add(this.textBoxPort);
             this.Controls.Add(this.checkBoxMaestro);
             this.Controls.Add(this.buttonSearch);
             this.Controls.Add(this.labelDebug);
@@ -164,6 +188,8 @@
         private System.Windows.Forms.Label labelDebug;
         private System.Windows.Forms.Button buttonSearch;
         private System.Windows.Forms.CheckBox checkBoxMaestro;
+        private System.Windows.Forms.TextBox textBoxPort;
+        private System.Windows.Forms.Label label3;
     }
 }
 

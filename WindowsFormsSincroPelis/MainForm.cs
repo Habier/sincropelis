@@ -108,5 +108,21 @@ namespace SincroPelis
         {
             textHost.Enabled = !checkBoxMaestro.Checked;
         }
+
+        private void textBoxPort_TextChanged(object sender, EventArgs e)
+        {
+            int number = 9000; //Default port;
+
+            if (!String.IsNullOrEmpty(textBoxPort.Text))
+                number = Convert.ToInt32(textBoxPort.Text);
+
+            Client.PORT = number;
+            Server.PORT = number;
+        }
+
+        private void textBoxPort_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            e.Handled = !char.IsDigit(e.KeyChar) && !char.IsControl(e.KeyChar);
+        }
     }
 }
