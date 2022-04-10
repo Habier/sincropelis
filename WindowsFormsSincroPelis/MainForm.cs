@@ -25,6 +25,7 @@ namespace SincroPelis
         {
             textHost.Text = Settings.Default.host;
             pName.Text = Settings.Default.videoplayer;
+            textBoxPort.Text = Settings.Default.port.ToString();
         }
 
 
@@ -80,6 +81,19 @@ namespace SincroPelis
             Settings.Default.videoplayer = pName.Text;
             Settings.Default.Save();
         }
+        private void textBoxPort_TextChanged(object sender, EventArgs e)
+        {
+            int number = 9000; //Default port;
+
+            if (!String.IsNullOrEmpty(textBoxPort.Text))
+                number = Convert.ToInt32(textBoxPort.Text);
+
+            Settings.Default.port = number;
+            Settings.Default.Save();
+
+            Client.PORT = number;
+            Server.PORT = number;
+        }
 
         private void buttonSearch_Click(object sender, EventArgs e)
         {
@@ -107,17 +121,6 @@ namespace SincroPelis
         private void checkBoxMaestro_CheckedChanged(object sender, EventArgs e)
         {
             textHost.Enabled = !checkBoxMaestro.Checked;
-        }
-
-        private void textBoxPort_TextChanged(object sender, EventArgs e)
-        {
-            int number = 9000; //Default port;
-
-            if (!String.IsNullOrEmpty(textBoxPort.Text))
-                number = Convert.ToInt32(textBoxPort.Text);
-
-            Client.PORT = number;
-            Server.PORT = number;
         }
 
         private void textBoxPort_KeyPress(object sender, KeyPressEventArgs e)
