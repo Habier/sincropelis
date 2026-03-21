@@ -17,6 +17,10 @@
             {
                 components.Dispose();
             }
+            if (disposing)
+            {
+                try { videoView?.Dispose(); } catch { }
+            }
             base.Dispose(disposing);
         }
 
@@ -28,152 +32,235 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            this.pauseButton = new System.Windows.Forms.Button();
-            this.pName = new System.Windows.Forms.TextBox();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
-            this.textHost = new System.Windows.Forms.TextBox();
-            this.buttonConnect = new System.Windows.Forms.Button();
-            this.labelDebug = new System.Windows.Forms.Label();
-            this.buttonSearch = new System.Windows.Forms.Button();
-            this.checkBoxMaestro = new System.Windows.Forms.CheckBox();
-            this.textBoxPort = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.SuspendLayout();
+            pauseButton = new Button();
+            pName = new TextBox();
+            label1 = new Label();
+            label2 = new Label();
+            textHost = new TextBox();
+            buttonConnect = new Button();
+            labelDebug = new Label();
+            buttonSearch = new Button();
+            checkBoxMaestro = new CheckBox();
+            textBoxPort = new TextBox();
+            label3 = new Label();
+            textBoxFilePath = new TextBox();
+            buttonSelectFile = new Button();
+            buttonOpenFile = new Button();
+            webBrowserPlayer = new WebBrowser();
+            videoView = new LibVLCSharp.WinForms.VideoView();
+            timerVlcStatus = new System.Windows.Forms.Timer(components);
+            ((System.ComponentModel.ISupportInitialize)videoView).BeginInit();
+            SuspendLayout();
             // 
             // pauseButton
             // 
-            this.pauseButton.Location = new System.Drawing.Point(268, 361);
-            this.pauseButton.Name = "pauseButton";
-            this.pauseButton.Size = new System.Drawing.Size(271, 50);
-            this.pauseButton.TabIndex = 0;
-            this.pauseButton.Text = "Pausar/Reanudar";
-            this.pauseButton.UseVisualStyleBackColor = true;
-            this.pauseButton.Click += new System.EventHandler(this.pauseButton_Click);
+            pauseButton.Location = new Point(313, 417);
+            pauseButton.Margin = new Padding(4, 3, 4, 3);
+            pauseButton.Name = "pauseButton";
+            pauseButton.Size = new Size(316, 58);
+            pauseButton.TabIndex = 0;
+            pauseButton.Text = "Pausar/Reanudar";
+            pauseButton.UseVisualStyleBackColor = true;
+            pauseButton.Click += pauseButton_Click;
             // 
             // pName
             // 
-            this.pName.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.pName.Location = new System.Drawing.Point(688, 12);
-            this.pName.Name = "pName";
-            this.pName.Size = new System.Drawing.Size(100, 20);
-            this.pName.TabIndex = 1;
-            this.pName.Text = "mpc-hc64";
-            this.pName.TextChanged += new System.EventHandler(this.pName_TextChanged);
+            pName.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            pName.Location = new Point(803, 14);
+            pName.Margin = new Padding(4, 3, 4, 3);
+            pName.Name = "pName";
+            pName.Size = new Size(116, 23);
+            pName.TabIndex = 1;
+            pName.Text = "mpc-hc64";
+            pName.TextChanged += pName_TextChanged;
             // 
             // label1
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(544, 15);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(123, 13);
-            this.label1.TabIndex = 2;
-            this.label1.Text = "Nombre del Reproductor";
+            label1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            label1.AutoSize = true;
+            label1.Location = new Point(582, 17);
+            label1.Margin = new Padding(4, 0, 4, 0);
+            label1.Name = "label1";
+            label1.Size = new Size(139, 15);
+            label1.TabIndex = 2;
+            label1.Text = "Nombre del Reproductor";
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(13, 15);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(32, 13);
-            this.label2.TabIndex = 4;
-            this.label2.Text = "Host:";
+            label2.AutoSize = true;
+            label2.Location = new Point(15, 17);
+            label2.Margin = new Padding(4, 0, 4, 0);
+            label2.Name = "label2";
+            label2.Size = new Size(35, 15);
+            label2.TabIndex = 4;
+            label2.Text = "Host:";
             // 
             // textHost
             // 
-            this.textHost.Location = new System.Drawing.Point(51, 12);
-            this.textHost.Name = "textHost";
-            this.textHost.Size = new System.Drawing.Size(100, 20);
-            this.textHost.TabIndex = 3;
-            this.textHost.TextChanged += new System.EventHandler(this.textHost_TextChanged);
+            textHost.Location = new Point(59, 14);
+            textHost.Margin = new Padding(4, 3, 4, 3);
+            textHost.Name = "textHost";
+            textHost.Size = new Size(116, 23);
+            textHost.TabIndex = 3;
+            textHost.TextChanged += textHost_TextChanged;
             // 
             // buttonConnect
             // 
-            this.buttonConnect.Location = new System.Drawing.Point(252, 7);
-            this.buttonConnect.Name = "buttonConnect";
-            this.buttonConnect.Size = new System.Drawing.Size(96, 29);
-            this.buttonConnect.TabIndex = 5;
-            this.buttonConnect.Text = "Conectar";
-            this.buttonConnect.UseVisualStyleBackColor = true;
-            this.buttonConnect.Click += new System.EventHandler(this.buttonConnect_Click);
+            buttonConnect.Location = new Point(294, 8);
+            buttonConnect.Margin = new Padding(4, 3, 4, 3);
+            buttonConnect.Name = "buttonConnect";
+            buttonConnect.Size = new Size(112, 33);
+            buttonConnect.TabIndex = 5;
+            buttonConnect.Text = "Conectar";
+            buttonConnect.UseVisualStyleBackColor = true;
+            buttonConnect.Click += buttonConnect_Click;
             // 
             // labelDebug
             // 
-            this.labelDebug.AutoSize = true;
-            this.labelDebug.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.labelDebug.ForeColor = System.Drawing.Color.Maroon;
-            this.labelDebug.Location = new System.Drawing.Point(0, 437);
-            this.labelDebug.Name = "labelDebug";
-            this.labelDebug.Size = new System.Drawing.Size(0, 13);
-            this.labelDebug.TabIndex = 6;
+            labelDebug.AutoSize = true;
+            labelDebug.Dock = DockStyle.Bottom;
+            labelDebug.ForeColor = Color.Maroon;
+            labelDebug.Location = new Point(0, 504);
+            labelDebug.Margin = new Padding(4, 0, 4, 0);
+            labelDebug.Name = "labelDebug";
+            labelDebug.Size = new Size(0, 15);
+            labelDebug.TabIndex = 6;
             // 
             // buttonSearch
             // 
-            this.buttonSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.buttonSearch.Location = new System.Drawing.Point(688, 39);
-            this.buttonSearch.Name = "buttonSearch";
-            this.buttonSearch.Size = new System.Drawing.Size(100, 25);
-            this.buttonSearch.TabIndex = 7;
-            this.buttonSearch.Text = "Auto buscar";
-            this.buttonSearch.UseVisualStyleBackColor = true;
-            this.buttonSearch.Click += new System.EventHandler(this.buttonSearch_Click);
+            buttonSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            buttonSearch.Location = new Point(803, 45);
+            buttonSearch.Margin = new Padding(4, 3, 4, 3);
+            buttonSearch.Name = "buttonSearch";
+            buttonSearch.Size = new Size(117, 29);
+            buttonSearch.TabIndex = 7;
+            buttonSearch.Text = "Auto buscar";
+            buttonSearch.UseVisualStyleBackColor = true;
+            buttonSearch.Click += buttonSearch_Click;
             // 
             // checkBoxMaestro
             // 
-            this.checkBoxMaestro.AutoSize = true;
-            this.checkBoxMaestro.Location = new System.Drawing.Point(16, 47);
-            this.checkBoxMaestro.Name = "checkBoxMaestro";
-            this.checkBoxMaestro.Size = new System.Drawing.Size(138, 17);
-            this.checkBoxMaestro.TabIndex = 9;
-            this.checkBoxMaestro.Text = "Conectar como servidor";
-            this.checkBoxMaestro.UseVisualStyleBackColor = true;
-            this.checkBoxMaestro.CheckedChanged += new System.EventHandler(this.checkBoxMaestro_CheckedChanged);
+            checkBoxMaestro.AutoSize = true;
+            checkBoxMaestro.Location = new Point(19, 54);
+            checkBoxMaestro.Margin = new Padding(4, 3, 4, 3);
+            checkBoxMaestro.Name = "checkBoxMaestro";
+            checkBoxMaestro.Size = new Size(153, 19);
+            checkBoxMaestro.TabIndex = 9;
+            checkBoxMaestro.Text = "Conectar como servidor";
+            checkBoxMaestro.UseVisualStyleBackColor = true;
+            checkBoxMaestro.CheckedChanged += checkBoxMaestro_CheckedChanged;
             // 
             // textBoxPort
             // 
-            this.textBoxPort.Location = new System.Drawing.Point(192, 12);
-            this.textBoxPort.MaxLength = 6;
-            this.textBoxPort.Name = "textBoxPort";
-            this.textBoxPort.Size = new System.Drawing.Size(42, 20);
-            this.textBoxPort.TabIndex = 10;
-            this.textBoxPort.Text = "9000";
-            this.textBoxPort.TextChanged += new System.EventHandler(this.textBoxPort_TextChanged);
-            this.textBoxPort.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.textBoxPort_KeyPress);
+            textBoxPort.Location = new Point(224, 14);
+            textBoxPort.Margin = new Padding(4, 3, 4, 3);
+            textBoxPort.MaxLength = 6;
+            textBoxPort.Name = "textBoxPort";
+            textBoxPort.Size = new Size(48, 23);
+            textBoxPort.TabIndex = 10;
+            textBoxPort.Text = "9000";
+            textBoxPort.TextChanged += textBoxPort_TextChanged;
+            textBoxPort.KeyPress += textBoxPort_KeyPress;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(157, 15);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(29, 13);
-            this.label3.TabIndex = 11;
-            this.label3.Text = "Port:";
+            label3.AutoSize = true;
+            label3.Location = new Point(183, 17);
+            label3.Margin = new Padding(4, 0, 4, 0);
+            label3.Name = "label3";
+            label3.Size = new Size(32, 15);
+            label3.TabIndex = 11;
+            label3.Text = "Port:";
+            // 
+            // textBoxFilePath
+            // 
+            textBoxFilePath.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            textBoxFilePath.Location = new Point(351, 45);
+            textBoxFilePath.Margin = new Padding(4, 3, 4, 3);
+            textBoxFilePath.Name = "textBoxFilePath";
+            textBoxFilePath.ReadOnly = true;
+            textBoxFilePath.Size = new Size(174, 23);
+            textBoxFilePath.TabIndex = 12;
+            textBoxFilePath.TextChanged += textBoxFilePath_TextChanged;
+            // 
+            // buttonSelectFile
+            // 
+            buttonSelectFile.Location = new Point(667, 48);
+            buttonSelectFile.Margin = new Padding(4, 3, 4, 3);
+            buttonSelectFile.Name = "buttonSelectFile";
+            buttonSelectFile.Size = new Size(88, 25);
+            buttonSelectFile.TabIndex = 13;
+            buttonSelectFile.Text = "Seleccionar";
+            buttonSelectFile.UseVisualStyleBackColor = true;
+            buttonSelectFile.Click += buttonSelectFile_Click;
+            // 
+            // buttonOpenFile
+            // 
+            buttonOpenFile.Location = new Point(533, 48);
+            buttonOpenFile.Margin = new Padding(4, 3, 4, 3);
+            buttonOpenFile.Name = "buttonOpenFile";
+            buttonOpenFile.Size = new Size(112, 25);
+            buttonOpenFile.TabIndex = 14;
+            buttonOpenFile.Text = "Abrir en Reprod.";
+            buttonOpenFile.UseVisualStyleBackColor = true;
+            buttonOpenFile.Click += buttonOpenFile_Click;
+            // 
+            // webBrowserPlayer
+            // 
+            webBrowserPlayer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            webBrowserPlayer.Location = new Point(15, 86);
+            webBrowserPlayer.Margin = new Padding(4, 3, 4, 3);
+            webBrowserPlayer.Name = "webBrowserPlayer";
+            webBrowserPlayer.Size = new Size(896, 318);
+            webBrowserPlayer.TabIndex = 16;
+            // 
+            // videoView
+            // 
+            videoView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            videoView.BackColor = Color.Black;
+            videoView.Location = new Point(15, 86);
+            videoView.Margin = new Padding(4, 3, 4, 3);
+            videoView.MediaPlayer = null;
+            videoView.Name = "videoView";
+            videoView.Size = new Size(896, 318);
+            videoView.TabIndex = 15;
+            // 
+            // timerVlcStatus
+            // 
+            timerVlcStatus.Interval = 500;
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.textBoxPort);
-            this.Controls.Add(this.checkBoxMaestro);
-            this.Controls.Add(this.buttonSearch);
-            this.Controls.Add(this.labelDebug);
-            this.Controls.Add(this.buttonConnect);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.textHost);
-            this.Controls.Add(this.label1);
-            this.Controls.Add(this.pName);
-            this.Controls.Add(this.pauseButton);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "MainForm";
-            this.Text = "Pinículas Sincronizadas";
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
-            this.Load += new System.EventHandler(this.Form1_Load);
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(933, 519);
+            Controls.Add(label3);
+            Controls.Add(textBoxPort);
+            Controls.Add(checkBoxMaestro);
+            Controls.Add(buttonSearch);
+            Controls.Add(labelDebug);
+            Controls.Add(buttonConnect);
+            Controls.Add(label2);
+            Controls.Add(textHost);
+            Controls.Add(label1);
+            Controls.Add(pName);
+            Controls.Add(pauseButton);
+            Controls.Add(videoView);
+            Controls.Add(webBrowserPlayer);
+            Controls.Add(textBoxFilePath);
+            Controls.Add(buttonSelectFile);
+            Controls.Add(buttonOpenFile);
+            Icon = (Icon)resources.GetObject("$this.Icon");
+            Margin = new Padding(4, 3, 4, 3);
+            Name = "MainForm";
+            Text = "Pinículas Sincronizadas";
+            FormClosing += Form1_FormClosing;
+            Load += Form1_Load;
+            ((System.ComponentModel.ISupportInitialize)videoView).EndInit();
+            ResumeLayout(false);
+            PerformLayout();
 
         }
 
@@ -190,6 +277,14 @@
         private System.Windows.Forms.CheckBox checkBoxMaestro;
         private System.Windows.Forms.TextBox textBoxPort;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.TextBox textBoxFilePath;
+        private System.Windows.Forms.Button buttonSelectFile;
+        private System.Windows.Forms.Button buttonOpenFile;
+        private System.Windows.Forms.WebBrowser webBrowserPlayer;
+        private LibVLCSharp.WinForms.VideoView videoView;
+        // comboVout and buttonReinitVlc removed — automatic video output only
+        private System.Windows.Forms.Timer timerVlcStatus;
+        // checkDisableHw removed
     }
 }
 
