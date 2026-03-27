@@ -70,7 +70,6 @@
             fullscreenButton.TabIndex = 19;
             fullscreenButton.Text = "Pantalla Completa";
             fullscreenButton.UseVisualStyleBackColor = true;
-            fullscreenButton.Click += fullscreenButton_Click;
             // 
             // pName
             // 
@@ -81,7 +80,6 @@
             pName.Size = new Size(116, 23);
             pName.TabIndex = 1;
             pName.Text = "mpc-hc64";
-            pName.TextChanged += pName_TextChanged;
             // 
             // label1
             // 
@@ -111,7 +109,6 @@
             textHost.Name = "textHost";
             textHost.Size = new Size(116, 23);
             textHost.TabIndex = 3;
-            textHost.TextChanged += textHost_TextChanged;
             // 
             // buttonConnect
             // 
@@ -122,7 +119,6 @@
             buttonConnect.TabIndex = 5;
             buttonConnect.Text = "Conectar";
             buttonConnect.UseVisualStyleBackColor = true;
-            buttonConnect.Click += buttonConnect_Click;
             // 
             // labelDebug
             // 
@@ -145,7 +141,6 @@
             buttonSearch.TabIndex = 7;
             buttonSearch.Text = "Auto buscar";
             buttonSearch.UseVisualStyleBackColor = true;
-            buttonSearch.Click += buttonSearch_Click;
             // 
             // checkBoxMaestro
             // 
@@ -157,7 +152,6 @@
             checkBoxMaestro.TabIndex = 9;
             checkBoxMaestro.Text = "Conectar como servidor";
             checkBoxMaestro.UseVisualStyleBackColor = true;
-            checkBoxMaestro.CheckedChanged += checkBoxMaestro_CheckedChanged;
             // 
             // textBoxPort
             // 
@@ -168,8 +162,6 @@
             textBoxPort.Size = new Size(48, 23);
             textBoxPort.TabIndex = 10;
             textBoxPort.Text = "9000";
-            textBoxPort.TextChanged += textBoxPort_TextChanged;
-            textBoxPort.KeyPress += textBoxPort_KeyPress;
             // 
             // label3
             // 
@@ -190,7 +182,6 @@
             textBoxFilePath.ReadOnly = true;
             textBoxFilePath.Size = new Size(174, 23);
             textBoxFilePath.TabIndex = 12;
-            textBoxFilePath.TextChanged += textBoxFilePath_TextChanged;
             // 
             // buttonSelectFile
             // 
@@ -201,7 +192,6 @@
             buttonSelectFile.TabIndex = 13;
             buttonSelectFile.Text = "Seleccionar";
             buttonSelectFile.UseVisualStyleBackColor = true;
-            buttonSelectFile.Click += buttonSelectFile_Click;
             // 
             // timerVlcStatus
             // 
@@ -285,7 +275,7 @@
             // comboAudio
             // 
             comboAudio.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboAudio.Location = new Point(10, 5);
+            comboAudio.Location = new Point(11, 132);
             comboAudio.Name = "comboAudio";
             comboAudio.Size = new Size(150, 23);
             comboAudio.TabIndex = 0;
@@ -293,7 +283,7 @@
             // comboSub
             // 
             comboSub.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboSub.Location = new Point(10, 30);
+            comboSub.Location = new Point(11, 157);
             comboSub.Name = "comboSub";
             comboSub.Size = new Size(150, 23);
             comboSub.TabIndex = 1;
@@ -324,8 +314,6 @@
             Margin = new Padding(4, 3, 4, 3);
             Name = "MainForm";
             Text = "Pinículas Sincronizadas";
-            FormClosing += Form1_FormClosing;
-            Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)videoView).EndInit();
             panelControls.ResumeLayout(false);
             panelControls.PerformLayout();

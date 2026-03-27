@@ -65,7 +65,7 @@ namespace SincroPelis
                 WireMediaPlayerEvents();
                 // double click to toggle fullscreen
                 try { videoView.DoubleClick += (s, e) => ToggleFullscreen(); } catch { }
-                // wire control events
+                // wire control events (designer event hookups were removed; subscribe at runtime)
                 try { playPauseButton.Click += PlayPauseButton_Click; } catch { }
                 try { stopButton.Click += StopButton_Click; } catch { }
                 try { trackBarPosition.Scroll += TrackBarPosition_Scroll; } catch { }
@@ -74,6 +74,18 @@ namespace SincroPelis
                 try { trackBarVolume.Scroll += TrackBarVolume_Scroll; } catch { }
                 try { comboAudio.SelectedIndexChanged += comboAudio_SelectedIndexChanged; } catch { }
                 try { comboSub.SelectedIndexChanged += comboSub_SelectedIndexChanged; } catch { }
+                // other UI events (were previously wired in designer)
+                try { fullscreenButton.Click += fullscreenButton_Click; } catch { }
+                try { buttonConnect.Click += buttonConnect_Click; } catch { }
+                try { textHost.TextChanged += textHost_TextChanged; } catch { }
+                try { pName.TextChanged += pName_TextChanged; } catch { }
+                try { buttonSearch.Click += buttonSearch_Click; } catch { }
+                try { checkBoxMaestro.CheckedChanged += checkBoxMaestro_CheckedChanged; } catch { }
+                try { textBoxPort.TextChanged += textBoxPort_TextChanged; } catch { }
+                try { textBoxPort.KeyPress += textBoxPort_KeyPress; } catch { }
+                try { buttonSelectFile.Click += buttonSelectFile_Click; } catch { }
+                try { textBoxFilePath.TextChanged += textBoxFilePath_TextChanged; } catch { }
+                try { videoView.Enter += videoView_Enter; } catch { }
                 // periodic timer to update position (single shared instance)
                 try
                 {

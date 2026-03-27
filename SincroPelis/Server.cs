@@ -17,13 +17,18 @@ namespace SincroPelis
         public static int PORT = 9000;
 
         private byte[] _buffer = new byte[_BUFFER_SIZE];
+        private bool started = false;
 
         public void start()
         {
-            Console.WriteLine("Servidor Socket ON");
-            _serverSocket.Bind(new IPEndPoint(IPAddress.Any, PORT));
-            _serverSocket.Listen(5);
-            _serverSocket.BeginAccept(AcceptCallback, null);
+            if (!started)
+            {
+                Console.WriteLine("Servidor Socket ON");
+                _serverSocket.Bind(new IPEndPoint(IPAddress.Any, PORT));
+                _serverSocket.Listen(5);
+                _serverSocket.BeginAccept(AcceptCallback, null);
+                started = true;
+            }
         }
 
         public void startAndConnect()
