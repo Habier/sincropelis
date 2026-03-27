@@ -30,15 +30,16 @@ namespace SincroPelis
         // Enable/disable playback-related controls safely
         private void SetControlsEnabled(bool enabled)
         {
-            SafeInvoke(() =>
-            {
-                playPauseButton.Enabled = enabled;
-                stopButton.Enabled = enabled;
-                trackBarPosition.Enabled = enabled;
-                trackBarVolume.Enabled = enabled;
-                comboAudio.Enabled = enabled;
-                comboSub.Enabled = enabled;
-            });
+                SafeInvoke(() =>
+                {
+                    playPauseButton.Enabled = enabled;
+                    backButton.Enabled = enabled;
+                    forwardButton.Enabled = enabled;
+                    trackBarPosition.Enabled = enabled;
+                    trackBarVolume.Enabled = enabled;
+                    comboAudio.Enabled = enabled;
+                    comboSub.Enabled = enabled;
+                });
         }
         public MainForm()
         {
@@ -67,7 +68,8 @@ namespace SincroPelis
                 try { videoView.DoubleClick += (s, e) => ToggleFullscreen(); } catch { }
                 // wire control events (designer event hookups were removed; subscribe at runtime)
                 try { playPauseButton.Click += PlayPauseButton_Click; } catch { }
-                try { stopButton.Click += StopButton_Click; } catch { }
+                try { backButton.Click += BackButton_Click; } catch { }
+                try { forwardButton.Click += ForwardButton_Click; } catch { }
                 try { trackBarPosition.Scroll += TrackBarPosition_Scroll; } catch { }
                 try { trackBarPosition.MouseDown += TrackBarPosition_MouseDown; } catch { }
                 try { trackBarPosition.MouseUp += TrackBarPosition_MouseUp; } catch { }
@@ -155,6 +157,34 @@ namespace SincroPelis
                     labelTime.Text = "00:00/00:00";
                 });
                 Program.client.TrySend("stop");
+            }
+            catch { }
+        }
+
+        private void BackButton_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_mediaPlayer != null)
+                {
+                    var newTime = Math.Max(0, _mediaPlayer.Time - 5000);
+                    _mediaPlayer.Time = (long)newTime;
+                    Program.client.TrySend("seekby:-5");
+                }
+            }
+            catch { }
+        }
+
+        private void ForwardButton_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_mediaPlayer != null)
+                {
+                    var newTime = Math.Min(_mediaPlayer.Length, _mediaPlayer.Time + 5000);
+                    _mediaPlayer.Time = (long)newTime;
+                    Program.client.TrySend("seekby:5");
+                }
             }
             catch { }
         }

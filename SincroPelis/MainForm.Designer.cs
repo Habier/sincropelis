@@ -49,7 +49,8 @@
             webBrowserPlayer = new WebBrowser();
             panelControls = new Panel();
             playPauseButton = new Button();
-            stopButton = new Button();
+            backButton = new Button();
+            forwardButton = new Button();
             trackBarPosition = new TrackBar();
             labelTime = new Label();
             trackBarVolume = new TrackBar();
@@ -218,7 +219,8 @@
             // 
             panelControls.BackColor = Color.FromArgb(160, 0, 0, 0);
             panelControls.Controls.Add(playPauseButton);
-            panelControls.Controls.Add(stopButton);
+            panelControls.Controls.Add(backButton);
+            panelControls.Controls.Add(forwardButton);
             panelControls.Controls.Add(trackBarPosition);
             panelControls.Controls.Add(labelTime);
             panelControls.Controls.Add(trackBarVolume);
@@ -236,22 +238,31 @@
             playPauseButton.Text = "Play";
             playPauseButton.UseVisualStyleBackColor = true;
             // 
-            // stopButton
+            // backButton
             // 
-            stopButton.Location = new Point(90, 15);
-            stopButton.Name = "stopButton";
-            stopButton.Size = new Size(80, 28);
-            stopButton.TabIndex = 1;
-            stopButton.Text = "Stop";
-            stopButton.UseVisualStyleBackColor = true;
+            backButton.Location = new Point(90, 15);
+            backButton.Name = "backButton";
+            backButton.Size = new Size(40, 28);
+            backButton.TabIndex = 1;
+            backButton.Text = "<";
+            backButton.UseVisualStyleBackColor = true;
+            // 
+            // forwardButton
+            // 
+            forwardButton.Location = new Point(135, 15);
+            forwardButton.Name = "forwardButton";
+            forwardButton.Size = new Size(40, 28);
+            forwardButton.TabIndex = 2;
+            forwardButton.Text = ">";
+            forwardButton.UseVisualStyleBackColor = true;
             // 
             // trackBarPosition
             // 
-            trackBarPosition.Location = new Point(180, 10);
+            trackBarPosition.Location = new Point(185, 10);
             trackBarPosition.Maximum = 1000;
             trackBarPosition.Name = "trackBarPosition";
-            trackBarPosition.Size = new Size(320, 45);
-            trackBarPosition.TabIndex = 2;
+            trackBarPosition.Size = new Size(300, 45);
+            trackBarPosition.TabIndex = 3;
             // 
             // labelTime
             // 
@@ -264,11 +275,11 @@
             // 
             // trackBarVolume
             // 
-            trackBarVolume.Location = new Point(590, 12);
+            trackBarVolume.Location = new Point(590, 3);
             trackBarVolume.Maximum = 100;
             trackBarVolume.Name = "trackBarVolume";
             trackBarVolume.Orientation = Orientation.Vertical;
-            trackBarVolume.Size = new Size(45, 34);
+            trackBarVolume.Size = new Size(45, 52);
             trackBarVolume.TabIndex = 4;
             trackBarVolume.Value = 100;
             // 
@@ -345,7 +356,8 @@
         private System.Windows.Forms.WebBrowser webBrowserPlayer;
         private System.Windows.Forms.Panel panelControls;
         private System.Windows.Forms.Button playPauseButton;
-        private System.Windows.Forms.Button stopButton;
+        private System.Windows.Forms.Button backButton;
+        private System.Windows.Forms.Button forwardButton;
         private System.Windows.Forms.TrackBar trackBarPosition;
         private System.Windows.Forms.TrackBar trackBarVolume;
         private System.Windows.Forms.Label labelTime;
