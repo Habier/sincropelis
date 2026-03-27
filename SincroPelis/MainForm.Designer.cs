@@ -17,10 +17,7 @@
             {
                 components.Dispose();
             }
-            if (disposing)
-            {
-                try { videoView?.Dispose(); } catch { }
-            }
+            // videoView removed
             base.Dispose(disposing);
         }
 
@@ -34,7 +31,7 @@
         {
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
-            pauseButton = new Button();
+            fullscreenButton = new Button();
             pName = new TextBox();
             label1 = new Label();
             label2 = new Label();
@@ -47,23 +44,33 @@
             label3 = new Label();
             textBoxFilePath = new TextBox();
             buttonSelectFile = new Button();
-            buttonOpenFile = new Button();
-            webBrowserPlayer = new WebBrowser();
-            videoView = new LibVLCSharp.WinForms.VideoView();
             timerVlcStatus = new System.Windows.Forms.Timer(components);
+            videoView = new LibVLCSharp.WinForms.VideoView();
+            webBrowserPlayer = new WebBrowser();
+            panelControls = new Panel();
+            playPauseButton = new Button();
+            stopButton = new Button();
+            trackBarPosition = new TrackBar();
+            labelTime = new Label();
+            trackBarVolume = new TrackBar();
+            comboAudio = new ComboBox();
+            comboSub = new ComboBox();
             ((System.ComponentModel.ISupportInitialize)videoView).BeginInit();
+            panelControls.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)trackBarPosition).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)trackBarVolume).BeginInit();
             SuspendLayout();
             // 
-            // pauseButton
+            // fullscreenButton
             // 
-            pauseButton.Location = new Point(313, 417);
-            pauseButton.Margin = new Padding(4, 3, 4, 3);
-            pauseButton.Name = "pauseButton";
-            pauseButton.Size = new Size(316, 58);
-            pauseButton.TabIndex = 0;
-            pauseButton.Text = "Pausar/Reanudar";
-            pauseButton.UseVisualStyleBackColor = true;
-            pauseButton.Click += pauseButton_Click;
+            fullscreenButton.Location = new Point(637, 417);
+            fullscreenButton.Margin = new Padding(4, 3, 4, 3);
+            fullscreenButton.Name = "fullscreenButton";
+            fullscreenButton.Size = new Size(140, 58);
+            fullscreenButton.TabIndex = 19;
+            fullscreenButton.Text = "Pantalla Completa";
+            fullscreenButton.UseVisualStyleBackColor = true;
+            fullscreenButton.Click += fullscreenButton_Click;
             // 
             // pName
             // 
@@ -177,7 +184,7 @@
             // textBoxFilePath
             // 
             textBoxFilePath.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            textBoxFilePath.Location = new Point(351, 45);
+            textBoxFilePath.Location = new Point(485, 49);
             textBoxFilePath.Margin = new Padding(4, 3, 4, 3);
             textBoxFilePath.Name = "textBoxFilePath";
             textBoxFilePath.ReadOnly = true;
@@ -196,46 +203,110 @@
             buttonSelectFile.UseVisualStyleBackColor = true;
             buttonSelectFile.Click += buttonSelectFile_Click;
             // 
-            // buttonOpenFile
-            // 
-            buttonOpenFile.Location = new Point(533, 48);
-            buttonOpenFile.Margin = new Padding(4, 3, 4, 3);
-            buttonOpenFile.Name = "buttonOpenFile";
-            buttonOpenFile.Size = new Size(112, 25);
-            buttonOpenFile.TabIndex = 14;
-            buttonOpenFile.Text = "Abrir en Reprod.";
-            buttonOpenFile.UseVisualStyleBackColor = true;
-            buttonOpenFile.Click += buttonOpenFile_Click;
-            // 
-            // webBrowserPlayer
-            // 
-            webBrowserPlayer.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            webBrowserPlayer.Location = new Point(15, 86);
-            webBrowserPlayer.Margin = new Padding(4, 3, 4, 3);
-            webBrowserPlayer.Name = "webBrowserPlayer";
-            webBrowserPlayer.Size = new Size(896, 318);
-            webBrowserPlayer.TabIndex = 16;
-            // 
-            // videoView
-            // 
-            videoView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            videoView.BackColor = Color.Black;
-            videoView.Location = new Point(15, 86);
-            videoView.Margin = new Padding(4, 3, 4, 3);
-            videoView.MediaPlayer = null;
-            videoView.Name = "videoView";
-            videoView.Size = new Size(896, 318);
-            videoView.TabIndex = 15;
-            // 
             // timerVlcStatus
             // 
             timerVlcStatus.Interval = 500;
+            // 
+            // videoView
+            // 
+            videoView.BackColor = Color.Black;
+            videoView.Location = new Point(167, 79);
+            videoView.MediaPlayer = null;
+            videoView.Name = "videoView";
+            videoView.Size = new Size(610, 283);
+            videoView.TabIndex = 21;
+            // 
+            // webBrowserPlayer
+            // 
+            webBrowserPlayer.Location = new Point(167, 79);
+            webBrowserPlayer.Name = "webBrowserPlayer";
+            webBrowserPlayer.Size = new Size(610, 283);
+            webBrowserPlayer.TabIndex = 22;
+            webBrowserPlayer.Visible = false;
+            // 
+            // panelControls
+            // 
+            panelControls.BackColor = Color.FromArgb(160, 0, 0, 0);
+            panelControls.Controls.Add(playPauseButton);
+            panelControls.Controls.Add(stopButton);
+            panelControls.Controls.Add(trackBarPosition);
+            panelControls.Controls.Add(labelTime);
+            panelControls.Controls.Add(trackBarVolume);
+            panelControls.Location = new Point(167, 369);
+            panelControls.Name = "panelControls";
+            panelControls.Size = new Size(610, 58);
+            panelControls.TabIndex = 22;
+            // 
+            // playPauseButton
+            // 
+            playPauseButton.Location = new Point(5, 15);
+            playPauseButton.Name = "playPauseButton";
+            playPauseButton.Size = new Size(80, 28);
+            playPauseButton.TabIndex = 0;
+            playPauseButton.Text = "Play";
+            playPauseButton.UseVisualStyleBackColor = true;
+            // 
+            // stopButton
+            // 
+            stopButton.Location = new Point(90, 15);
+            stopButton.Name = "stopButton";
+            stopButton.Size = new Size(80, 28);
+            stopButton.TabIndex = 1;
+            stopButton.Text = "Stop";
+            stopButton.UseVisualStyleBackColor = true;
+            // 
+            // trackBarPosition
+            // 
+            trackBarPosition.Location = new Point(180, 10);
+            trackBarPosition.Maximum = 1000;
+            trackBarPosition.Name = "trackBarPosition";
+            trackBarPosition.Size = new Size(320, 45);
+            trackBarPosition.TabIndex = 2;
+            // 
+            // labelTime
+            // 
+            labelTime.ForeColor = Color.White;
+            labelTime.Location = new Point(505, 18);
+            labelTime.Name = "labelTime";
+            labelTime.Size = new Size(80, 20);
+            labelTime.TabIndex = 3;
+            labelTime.Text = "00:00/00:00";
+            // 
+            // trackBarVolume
+            // 
+            trackBarVolume.Location = new Point(590, 12);
+            trackBarVolume.Maximum = 100;
+            trackBarVolume.Name = "trackBarVolume";
+            trackBarVolume.Orientation = Orientation.Vertical;
+            trackBarVolume.Size = new Size(45, 34);
+            trackBarVolume.TabIndex = 4;
+            trackBarVolume.Value = 100;
+            // 
+            // comboAudio
+            // 
+            comboAudio.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboAudio.Location = new Point(10, 5);
+            comboAudio.Name = "comboAudio";
+            comboAudio.Size = new Size(150, 23);
+            comboAudio.TabIndex = 0;
+            // 
+            // comboSub
+            // 
+            comboSub.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboSub.Location = new Point(10, 30);
+            comboSub.Name = "comboSub";
+            comboSub.Size = new Size(150, 23);
+            comboSub.TabIndex = 1;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(933, 519);
+            Controls.Add(comboAudio);
+            Controls.Add(comboSub);
+            Controls.Add(videoView);
+            Controls.Add(panelControls);
             Controls.Add(label3);
             Controls.Add(textBoxPort);
             Controls.Add(checkBoxMaestro);
@@ -246,12 +317,9 @@
             Controls.Add(textHost);
             Controls.Add(label1);
             Controls.Add(pName);
-            Controls.Add(pauseButton);
-            Controls.Add(videoView);
-            Controls.Add(webBrowserPlayer);
+            Controls.Add(fullscreenButton);
             Controls.Add(textBoxFilePath);
             Controls.Add(buttonSelectFile);
-            Controls.Add(buttonOpenFile);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(4, 3, 4, 3);
             Name = "MainForm";
@@ -259,6 +327,10 @@
             FormClosing += Form1_FormClosing;
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)videoView).EndInit();
+            panelControls.ResumeLayout(false);
+            panelControls.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)trackBarPosition).EndInit();
+            ((System.ComponentModel.ISupportInitialize)trackBarVolume).EndInit();
             ResumeLayout(false);
             PerformLayout();
 
@@ -266,7 +338,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Button pauseButton;
+        private System.Windows.Forms.Button fullscreenButton;
         private System.Windows.Forms.TextBox pName;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
@@ -279,11 +351,18 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.TextBox textBoxFilePath;
         private System.Windows.Forms.Button buttonSelectFile;
-        private System.Windows.Forms.Button buttonOpenFile;
-        private System.Windows.Forms.WebBrowser webBrowserPlayer;
-        private LibVLCSharp.WinForms.VideoView videoView;
         // comboVout and buttonReinitVlc removed — automatic video output only
         private System.Windows.Forms.Timer timerVlcStatus;
+        private LibVLCSharp.WinForms.VideoView videoView;
+        private System.Windows.Forms.WebBrowser webBrowserPlayer;
+        private System.Windows.Forms.Panel panelControls;
+        private System.Windows.Forms.Button playPauseButton;
+        private System.Windows.Forms.Button stopButton;
+        private System.Windows.Forms.TrackBar trackBarPosition;
+        private System.Windows.Forms.TrackBar trackBarVolume;
+        private System.Windows.Forms.Label labelTime;
+        private System.Windows.Forms.ComboBox comboAudio;
+        private System.Windows.Forms.ComboBox comboSub;
         // checkDisableHw removed
     }
 }

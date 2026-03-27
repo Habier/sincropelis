@@ -16,109 +16,267 @@ namespace SincroPelis
 {
     public partial class MainForm : Form
     {
+        private bool _isFullscreen = false;
+        private FormWindowState _previousWindowState;
+        private Rectangle _previousBounds;
         private LibVLC? _libVLC;
         private MediaPlayer? _mediaPlayer;
-
+        private System.Windows.Forms.Timer? _timerWmpPoll;
+        private int _lastWmpState = -1;
+        // UI timer used to update position/labels. Kept as field to pause/resume during seeking.
+        private System.Windows.Forms.Timer? _uiTimer;
+        // Flag set while the user is interacting with the position trackbar to avoid UI glitches.
+        private volatile bool _isSeeking = false;
+        // Enable/disable playback-related controls safely
+        private void SetControlsEnabled(bool enabled)
+        {
+            SafeInvoke(() =>
+            {
+                playPauseButton.Enabled = enabled;
+                stopButton.Enabled = enabled;
+                trackBarPosition.Enabled = enabled;
+                trackBarVolume.Enabled = enabled;
+                comboAudio.Enabled = enabled;
+                comboSub.Enabled = enabled;
+            });
+        }
         public MainForm()
         {
             InitializeComponent();
-            Core.Initialize();
-
-            timerVlcStatus.Interval = 500;
-            timerVlcStatus.Tick += TimerVlcStatus_Tick;
-
+            // Initialize LibVLC and VideoView
             try
             {
-                // Prefer Direct3D11 video output on Windows to avoid black video surfaces
+                LibVLCSharp.Shared.Core.Initialize();
                 try
                 {
                     _libVLC = new LibVLC(new string[] { "--vout=direct3d11", "--no-video-title-show" });
                 }
                 catch
                 {
-                    // fallback to default if option unsupported
                     _libVLC = new LibVLC();
                 }
-
                 _mediaPlayer = new MediaPlayer(_libVLC);
-                // Ensure the VideoView has a handle created before assigning MediaPlayer
                 try { videoView.CreateControl(); } catch { }
                 videoView.MediaPlayer = _mediaPlayer;
                 videoView.Visible = true;
                 webBrowserPlayer.Visible = false;
+                // start with controls disabled until media is ready
+                SetControlsEnabled(false);
+                WireMediaPlayerEvents();
+                // double click to toggle fullscreen
+                try { videoView.DoubleClick += (s, e) => ToggleFullscreen(); } catch { }
+                // wire control events
+                try { playPauseButton.Click += PlayPauseButton_Click; } catch { }
+                try { stopButton.Click += StopButton_Click; } catch { }
+                try { trackBarPosition.Scroll += TrackBarPosition_Scroll; } catch { }
+                try { trackBarPosition.MouseDown += TrackBarPosition_MouseDown; } catch { }
+                try { trackBarPosition.MouseUp += TrackBarPosition_MouseUp; } catch { }
+                try { trackBarVolume.Scroll += TrackBarVolume_Scroll; } catch { }
+                try { comboAudio.SelectedIndexChanged += comboAudio_SelectedIndexChanged; } catch { }
+                try { comboSub.SelectedIndexChanged += comboSub_SelectedIndexChanged; } catch { }
+                // periodic timer to update position (single shared instance)
+                try
+                {
+                    if (_uiTimer == null)
+                    {
+                        _uiTimer = new System.Windows.Forms.Timer();
+                        _uiTimer.Interval = 500;
+                        _uiTimer.Tick += UiTimer_Tick;
+                        _uiTimer.Start();
+                    }
+                }
+                catch { }
+                // initialize volume control from player
+                try { if (_mediaPlayer != null) trackBarVolume.Value = _mediaPlayer.Volume; } catch { }
             }
             catch (Exception ex)
             {
                 SendDebug("LibVLC init failed: " + ex.Message);
-                // keep webBrowser fallback
-                webBrowserPlayer.Visible = true;
-                videoView.Visible = false;
             }
         }
 
-        private void buttonReinitVlc_Click(object sender, EventArgs e)
-        {
-            // Keep for compatibility — just reinit automatically
-            try
-            {
-                timerVlcStatus.Stop();
-                _mediaPlayer?.Stop();
-                _mediaPlayer?.Dispose();
-                _libVLC?.Dispose();
-            }
-            catch { }
+        // no WMP host anymore
 
-            try
-            {
-                _libVLC = new LibVLC(new string[] { "--no-video-title-show" });
-                _mediaPlayer = new MediaPlayer(_libVLC);
-                _mediaPlayer.EncounteredError += (_, _) => SendDebug("MediaPlayer encountered an error.");
-                _mediaPlayer.Playing += (_, _) => SendDebug("MediaPlayer playing.");
-                try { videoView.CreateControl(); } catch { }
-                videoView.MediaPlayer = _mediaPlayer;
-                videoView.Visible = true;
-                webBrowserPlayer.Visible = false;
-                SendDebug("LibVLC reiniciado (automatic).");
-            }
-            catch (Exception ex)
-            {
-                SendDebug("Reinicio de LibVLC fallido: " + ex.Message);
-            }
-        }
+        // Timer poll removed (was used for WMP)
 
-        private void TimerVlcStatus_Tick(object? sender, EventArgs e)
-        {
-            // if media is playing but surface size is zero, log it
-            try
-            {
-                if (_mediaPlayer != null && _mediaPlayer.IsPlaying)
-                {
-                    // Query video size via video track dimensions
-                    try
-                    {
-                        uint w = 0, h = 0;
-                        _mediaPlayer.Size(0u, ref w, ref h);
-                        if (w == 0 || h == 0)
-                        {
-                            SendDebug($"Video surface size {w}x{h} — posible problema de render.");
-                        }
-                        else
-                        {
-                            // OK
-                            timerVlcStatus.Stop();
-                        }
-                    }
-                    catch { }
-                }
-            }
-            catch { }
-        }
+        // LibVLC removed — WMP (axWindowsMediaPlayer1) is primary player now.
 
         private void Form1_Load(object sender, EventArgs e)
         {
             textHost.Text = Settings.Default.host;
             pName.Text = Settings.Default.videoplayer;
             textBoxPort.Text = Settings.Default.port.ToString();
+        }
+
+        private void PlayPauseButton_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_mediaPlayer != null)
+                {
+                    if (_mediaPlayer.IsPlaying)
+                    {
+                        _mediaPlayer.Pause();
+                        SafeInvoke(() => playPauseButton.Text = "Play");
+                        Program.client.TrySend("pause");
+                    }
+                    else
+                    {
+                        _mediaPlayer.Play();
+                        SafeInvoke(() => playPauseButton.Text = "Pause");
+                        Program.client.TrySend("play");
+                    }
+                }
+            }
+            catch { }
+        }
+
+        private void StopButton_Click(object? sender, EventArgs e)
+        {
+            try
+            {
+                _mediaPlayer?.Stop();
+                SafeInvoke(() =>
+                {
+                    playPauseButton.Text = "Play";
+                    trackBarPosition.Value = 0;
+                    labelTime.Text = "00:00/00:00";
+                });
+                Program.client.TrySend("stop");
+            }
+            catch { }
+        }
+
+        private void TrackBarPosition_Scroll(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_mediaPlayer != null && _mediaPlayer.Length > 0)
+                {
+                    // user requested seek
+                    var pos = trackBarPosition.Value / (double)trackBarPosition.Maximum;
+                    _mediaPlayer.Position = (float)pos;
+                    Program.client.TrySend($"seek:{pos}");
+                }
+            }
+            catch { }
+        }
+
+        private void TrackBarPosition_MouseDown(object? sender, MouseEventArgs e)
+        {
+            _isSeeking = true;
+        }
+
+        private void TrackBarPosition_MouseUp(object? sender, MouseEventArgs e)
+        {
+            _isSeeking = false;
+        }
+
+        private void TrackBarVolume_Scroll(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_mediaPlayer != null)
+                {
+                    _mediaPlayer.Volume = trackBarVolume.Value;
+                    Program.client.TrySend($"volume:{trackBarVolume.Value}");
+                }
+            }
+            catch { }
+        }
+
+        private void UiTimer_Tick(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_mediaPlayer != null && _mediaPlayer.Length > 0 && !_isSeeking)
+                {
+                    var position = _mediaPlayer.Position; // 0..1
+                    SafeInvoke(() =>
+                    {
+                        trackBarPosition.Value = Math.Min(trackBarPosition.Maximum, (int)(position * trackBarPosition.Maximum));
+                        var current = TimeSpan.FromMilliseconds(_mediaPlayer.Time);
+                        var total = TimeSpan.FromMilliseconds(_mediaPlayer.Length);
+                        labelTime.Text = string.Format("{0:mm\\:ss}/{1:mm\\:ss}", current, total);
+                    });
+                }
+            }
+            catch { }
+        }
+
+        // Helper to perform safe UI updates from libVLC threads
+        private void SafeInvoke(Action action)
+        {
+            if (InvokeRequired)
+                BeginInvoke(action);
+            else
+                action();
+        }
+
+        // Load audio tracks into combo box AFTER media is loaded
+        private void LoadAudioTracks()
+        {
+            try
+            {
+                SafeInvoke(() => comboAudio.Items.Clear());
+                if (_mediaPlayer == null) return;
+                var desc = _mediaPlayer.AudioTrackDescription;
+                if (desc == null) return;
+                foreach (var d in desc)
+                {
+                    var id = d.Id;
+                    var name = string.IsNullOrEmpty(d.Name) ? $"Track {id}" : d.Name;
+                    SafeInvoke(() => comboAudio.Items.Add(new ComboItem(name, id)));
+                }
+                // select current
+                var current = _mediaPlayer.AudioTrack;
+                SafeInvoke(() =>
+                {
+                    for (int i = 0; i < comboAudio.Items.Count; i++)
+                    {
+                        if (((ComboItem)comboAudio.Items[i]).Id == current)
+                        {
+                            comboAudio.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                });
+            }
+            catch { }
+        }
+
+        // Load subtitle (SPU) tracks into combo box; include "None" option
+        private void LoadSubtitleTracks()
+        {
+            try
+            {
+                SafeInvoke(() => comboSub.Items.Clear());
+                if (_mediaPlayer == null) return;
+                // add None
+                SafeInvoke(() => comboSub.Items.Add(new ComboItem("None", -1)));
+                var desc = _mediaPlayer.SpuDescription;
+                if (desc == null) return;
+                foreach (var d in desc)
+                {
+                    var id = d.Id;
+                    var name = string.IsNullOrEmpty(d.Name) ? $"Sub {id}" : d.Name;
+                    SafeInvoke(() => comboSub.Items.Add(new ComboItem(name, id)));
+                }
+                // select current
+                var current = _mediaPlayer.Spu;
+                SafeInvoke(() =>
+                {
+                    for (int i = 0; i < comboSub.Items.Count; i++)
+                    {
+                        if (((ComboItem)comboSub.Items[i]).Id == current)
+                        {
+                            comboSub.SelectedIndex = i;
+                            break;
+                        }
+                    }
+                });
+            }
+            catch { }
         }
 
 
@@ -128,10 +286,40 @@ namespace SincroPelis
             labelDebug.Invoke(new Action(() => labelDebug.Text = text));
         }
 
-        private void pauseButton_Click(object sender, EventArgs e)
+        // pause/play/stop buttons removed from UI; playback controlled via player UI or double-click/fullscreen
+
+
+
+
+        private void fullscreenButton_Click(object sender, EventArgs e)
         {
-            //Cheats.SendKey2Process(pName.Text);
-            Program.client.TrySend();
+            try
+            {
+                Program.client.TrySend("fullscreen");
+            }
+            catch { }
+            ToggleFullscreen();
+        }
+
+        private void ToggleFullscreen()
+        {
+            // Only toggle LibVLC native fullscreen mode.
+            try
+            {
+                if (!_isFullscreen)
+                {
+                    try { if (_mediaPlayer != null) { _mediaPlayer.Fullscreen = true; videoView.BringToFront(); } } catch { }
+                    _isFullscreen = true;
+                    try { fullscreenButton.Text = "Salir Pantalla"; } catch { }
+                }
+                else
+                {
+                    try { if (_mediaPlayer != null) _mediaPlayer.Fullscreen = false; } catch { }
+                    _isFullscreen = false;
+                    try { fullscreenButton.Text = "Pantalla Completa"; } catch { }
+                }
+            }
+            catch { }
         }
 
         private void selfConnect()
@@ -230,6 +418,8 @@ namespace SincroPelis
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
                     textBoxFilePath.Text = ofd.FileName;
+                    // Open immediately in player, paused
+                    try { LoadFileToPlayer(ofd.FileName, true); } catch { }
                 }
             }
         }
@@ -245,51 +435,49 @@ namespace SincroPelis
 
             try
             {
-                if (_mediaPlayer != null && _libVLC != null)
-                {
-                    // use libVLC to play the file
-                    videoView.BackColor = Color.Black;
-                    videoView.Visible = true;
-                    videoView.BringToFront();
-                    webBrowserPlayer.Visible = false;
-                    // ensure media player attached
-                    if (videoView.MediaPlayer == null) videoView.MediaPlayer = _mediaPlayer;
-                    try { videoView.CreateControl(); } catch { }
-                    videoView.Visible = true;
-                    videoView.BringToFront();
-                    videoView.Invalidate();
-                    Application.DoEvents();
-                    // small delay to allow native surface creation
-                    try { Thread.Sleep(150); } catch { }
-
-                    using var media = new Media(_libVLC, path, FromType.FromPath);
-                    var playResult = _mediaPlayer.Play(media);
-                    timerVlcStatus.Start();
-                    SendDebug("Reproduciendo en reproductor integrado (LibVLC). Play result=" + playResult.ToString());
-                }
-                else
-                {
-                    // Load the video into the embedded WebBrowser using an HTML5 video tag
-                    var uri = new Uri(path);
-                    var html = $"<html><body style=\"margin:0;background:black\"><video width=\"100%\" height=\"100%\" controls autoplay src=\"{uri.AbsoluteUri}\">Your browser does not support the video tag.</video></body></html>";
-                    webBrowserPlayer.DocumentText = html;
-                    webBrowserPlayer.Visible = true;
-                    videoView.Visible = false;
-                    SendDebug("Fichero cargado en reproductor integrado (WebBrowser).");
-                }
+                LoadFileToPlayer(path, false); // open and don't force pause
             }
             catch (Exception ex)
             {
-                // Fallback: try to open the file with default associated app
+                SendDebug("Error cargando fichero: " + ex.Message);
+            }
+        }
+
+        private void LoadFileToPlayer(string path, bool startPaused)
+        {
+            // Prefer LibVLC player
+            if (_mediaPlayer != null && _libVLC != null)
+            {
                 try
                 {
-                    Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
-                    SendDebug("Fichero abierto con la aplicación por defecto.");
+                    using var media = new LibVLCSharp.Shared.Media(_libVLC, path, LibVLCSharp.Shared.FromType.FromPath);
+                    _mediaPlayer.Play(media);
+                    if (startPaused)
+                    {
+                        try { _mediaPlayer.Pause(); } catch { }
+                    }
+                    SendDebug(startPaused ? "Fichero cargado en LibVLC (pausado)." : "Reproduciendo en reproductor integrado (LibVLC).");
+                    return;
                 }
-                catch (Exception inner)
+                catch (Exception ex)
                 {
-                    SendDebug("Error abriendo el fichero: " + inner.Message);
+                    SendDebug("Error cargando en LibVLC: " + ex.Message);
                 }
+            }
+
+            // Fallback to WebBrowser HTML5
+            try
+            {
+                var uri = new Uri(path);
+                var html = $"<html><body style=\"margin:0;background:black\"><video width=\"100%\" height=\"100%\" controls src=\"{uri.AbsoluteUri}\">Your browser does not support the video tag.</video></body></html>";
+                webBrowserPlayer.DocumentText = html;
+                webBrowserPlayer.Visible = true;
+                videoView.Visible = false;
+                SendDebug("Fichero cargado en reproductor integrado (WebBrowser).");
+            }
+            catch (Exception ex)
+            {
+                SendDebug("No hay reproductor disponible: " + ex.Message);
             }
         }
 
@@ -308,6 +496,64 @@ namespace SincroPelis
         private void textBoxFilePath_TextChanged(object sender, EventArgs e)
         {
 
+        }
+
+        private void videoView_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        // Map LibVLC events to client messages
+        private void WireMediaPlayerEvents()
+        {
+            if (_mediaPlayer == null) return;
+            _mediaPlayer.Playing += (_, _) => { try { Program.client.TrySend("play"); SendDebug("LibVLC: Playing"); SafeInvoke(() => { playPauseButton.Text = "Pause"; SetControlsEnabled(true); }); } catch { } };
+            _mediaPlayer.Paused += (_, _) => { try { Program.client.TrySend("pause"); SendDebug("LibVLC: Paused"); SafeInvoke(() => playPauseButton.Text = "Play"); } catch { } };
+            _mediaPlayer.Stopped += (_, _) => { try { Program.client.TrySend("stop"); SendDebug("LibVLC: Stopped"); SafeInvoke(() => { playPauseButton.Text = "Play"; SetControlsEnabled(false); }); } catch { } };
+            _mediaPlayer.EndReached += (_, _) => { try { Program.client.TrySend("ended"); SendDebug("LibVLC: Ended"); SafeInvoke(() => { playPauseButton.Text = "Play"; trackBarPosition.Value = 0; SetControlsEnabled(false); }); } catch { } };
+            _mediaPlayer.LengthChanged += (_, _) => { try { SafeInvoke(() => UiTimer_Tick(null, EventArgs.Empty)); } catch { } };
+
+            // Ensure audio/subtitle lists are loaded when media becomes ready
+            _mediaPlayer.Playing += (_, _) => { try { LoadAudioTracks(); LoadSubtitleTracks(); } catch { } };
+        }
+
+        // Simple container to store combo display and ID
+        private class ComboItem
+        {
+            public string Name { get; }
+            public int Id { get; }
+            public ComboItem(string name, int id) { Name = name; Id = id; }
+            public override string ToString() => Name;
+        }
+
+        // Event handlers for audio/subtitle combo boxes (wired in designer)
+        private void comboAudio_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_mediaPlayer == null) return;
+                if (comboAudio.SelectedItem is ComboItem it)
+                {
+                    _mediaPlayer.SetAudioTrack(it.Id);
+                    Program.client.TrySend($"audio:{it.Id}");
+                }
+            }
+            catch { }
+        }
+
+        private void comboSub_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            try
+            {
+                if (_mediaPlayer == null) return;
+                if (comboSub.SelectedItem is ComboItem it)
+                {
+                    // id -1 disables
+                    _mediaPlayer.SetSpu(it.Id);
+                    Program.client.TrySend($"sub:{it.Id}");
+                }
+            }
+            catch { }
         }
     }
 }
