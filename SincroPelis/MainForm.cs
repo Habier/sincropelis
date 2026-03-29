@@ -67,7 +67,8 @@ namespace SincroPelis
                 // mouse click: single click = play/pause, double click = fullscreen
                 try { videoView.Click += (s, e) => PlayPauseButton_Click(null, EventArgs.Empty); } catch { }
                 // allow form to receive key events (for ESC to exit fullscreen)
-                try { this.KeyPreview = true; this.KeyDown += MainForm_KeyDown; } catch { }
+                try { this.KeyPreview = true; } catch { }
+                try { KeyController.OnShortcutPressed += OnShortcutPressed; } catch { }
                 // wire control events (designer event hookups were removed; subscribe at runtime)
                 try { playPauseButton.Click += PlayPauseButton_Click; } catch { }
                 try { backButton.Click += BackButton_Click; } catch { }
@@ -89,7 +90,6 @@ namespace SincroPelis
                 try { buttonSelectFile.Click += buttonSelectFile_Click; } catch { }
                 try { textBoxFilePath.TextChanged += textBoxFilePath_TextChanged; } catch { }
                 try { videoView.Enter += videoView_Enter; } catch { }
-                // periodic timer to update position (single shared instance)
                 try
                 {
                     if (_uiTimer == null)
@@ -265,32 +265,39 @@ namespace SincroPelis
             catch { }
         }
 
-        private void MainForm_KeyDown(object? sender, KeyEventArgs e)
+        private void OnShortcutPressed(KeyController.Shortcut shortcut)
         {
             try
             {
-                if (e.KeyCode == Keys.Space)
+                switch (shortcut)
                 {
-                    PlayPauseButton_Click(null, EventArgs.Empty);
-                    e.Handled = true;
-                }
-                else if (e.KeyCode == Keys.Left)
-                {
-                    BackButton_Click(null, EventArgs.Empty);
-                    e.Handled = true;
-                }
-                else if (e.KeyCode == Keys.Right)
-                {
-                    ForwardButton_Click(null, EventArgs.Empty);
-                    e.Handled = true;
-                }
-                else if (e.KeyCode == Keys.Escape)
-                {
-                    if (_isFullscreen || (_mediaPlayer != null && _mediaPlayer.Fullscreen))
-                    {
-                        ToggleFullscreen();
-                        e.Handled = true;
-                    }
+                    case KeyController.Shortcut.PlayPause:
+                        PlayPauseButton_Click(null, EventArgs.Empty);
+                        break;
+                    case KeyController.Shortcut.SeekBack:
+                        BackButton_Click(null, EventArgs.Empty);
+                        break;
+                    case KeyController.Shortcut.SeekForward:
+                        ForwardButton_Click(null, EventArgs.Empty);
+                        break;
+                    case KeyController.Shortcut.Escape:
+                        if (_isFullscreen || _fsForm != null)
+                            ToggleFullscreen();
+                        break;
+                    case KeyController.Shortcut.VolumeUp:
+                        if (_mediaPlayer != null)
+                        {
+                            _mediaPlayer.Volume = Math.Min(100, _mediaPlayer.Volume + 5);
+                            trackBarVolume.Value = _mediaPlayer.Volume;
+                        }
+                        break;
+                    case KeyController.Shortcut.VolumeDown:
+                        if (_mediaPlayer != null)
+                        {
+                            _mediaPlayer.Volume = Math.Max(0, _mediaPlayer.Volume - 5);
+                            trackBarVolume.Value = _mediaPlayer.Volume;
+                        }
+                        break;
                 }
             }
             catch { }
@@ -400,7 +407,7 @@ namespace SincroPelis
             {
                 if (_fsForm == null)
                 {
-                    _fsForm = new FullscreenForm(videoView, _mediaPlayer, () =>
+                    _fsForm = new FullscreenForm(videoView, () =>
                     {
                         _fsForm = null;
                         _isFullscreen = false;

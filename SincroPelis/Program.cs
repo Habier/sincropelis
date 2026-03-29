@@ -18,8 +18,10 @@ namespace SincroPelis
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
+            KeyController.Start();
             myForm = new MainForm();
             Application.Run(myForm);
+            KeyController.Stop();
         }
     }
 }

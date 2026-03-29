@@ -61,11 +61,12 @@
             // 
             // fullscreenButton
             // 
-            fullscreenButton.Location = new Point(637, 417);
+            fullscreenButton.Location = new Point(11, 238);
             fullscreenButton.Margin = new Padding(4, 3, 4, 3);
             fullscreenButton.Name = "fullscreenButton";
-            fullscreenButton.Size = new Size(140, 58);
-            fullscreenButton.TabIndex = 19;
+            fullscreenButton.Size = new Size(150, 58);
+            fullscreenButton.TabIndex = 27;
+            fullscreenButton.TabStop = false;
             fullscreenButton.Text = "Pantalla Completa";
             fullscreenButton.UseVisualStyleBackColor = true;
             // 
@@ -76,7 +77,7 @@
             label2.Margin = new Padding(4, 0, 4, 0);
             label2.Name = "label2";
             label2.Size = new Size(35, 15);
-            label2.TabIndex = 4;
+            label2.TabIndex = 26;
             label2.Text = "Host:";
             // 
             // textHost
@@ -86,14 +87,16 @@
             textHost.Name = "textHost";
             textHost.Size = new Size(116, 23);
             textHost.TabIndex = 3;
+            textHost.TabStop = false;
             // 
             // buttonConnect
             // 
-            buttonConnect.Location = new Point(294, 8);
+            buttonConnect.Location = new Point(441, 8);
             buttonConnect.Margin = new Padding(4, 3, 4, 3);
             buttonConnect.Name = "buttonConnect";
             buttonConnect.Size = new Size(112, 33);
-            buttonConnect.TabIndex = 5;
+            buttonConnect.TabIndex = 25;
+            buttonConnect.TabStop = false;
             buttonConnect.Text = "Conectar";
             buttonConnect.UseVisualStyleBackColor = true;
             // 
@@ -111,11 +114,12 @@
             // checkBoxMaestro
             // 
             checkBoxMaestro.AutoSize = true;
-            checkBoxMaestro.Location = new Point(19, 54);
+            checkBoxMaestro.Location = new Point(280, 16);
             checkBoxMaestro.Margin = new Padding(4, 3, 4, 3);
             checkBoxMaestro.Name = "checkBoxMaestro";
             checkBoxMaestro.Size = new Size(153, 19);
-            checkBoxMaestro.TabIndex = 9;
+            checkBoxMaestro.TabIndex = 24;
+            checkBoxMaestro.TabStop = false;
             checkBoxMaestro.Text = "Conectar como servidor";
             checkBoxMaestro.UseVisualStyleBackColor = true;
             // 
@@ -127,6 +131,7 @@
             textBoxPort.Name = "textBoxPort";
             textBoxPort.Size = new Size(48, 23);
             textBoxPort.TabIndex = 10;
+            textBoxPort.TabStop = false;
             textBoxPort.Text = "9000";
             // 
             // label3
@@ -136,26 +141,28 @@
             label3.Margin = new Padding(4, 0, 4, 0);
             label3.Name = "label3";
             label3.Size = new Size(32, 15);
-            label3.TabIndex = 11;
+            label3.TabIndex = 23;
             label3.Text = "Port:";
             // 
             // textBoxFilePath
             // 
             textBoxFilePath.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            textBoxFilePath.Location = new Point(485, 49);
+            textBoxFilePath.Location = new Point(167, 49);
             textBoxFilePath.Margin = new Padding(4, 3, 4, 3);
             textBoxFilePath.Name = "textBoxFilePath";
             textBoxFilePath.ReadOnly = true;
-            textBoxFilePath.Size = new Size(174, 23);
+            textBoxFilePath.Size = new Size(514, 23);
             textBoxFilePath.TabIndex = 12;
+            textBoxFilePath.TabStop = false;
             // 
             // buttonSelectFile
             // 
-            buttonSelectFile.Location = new Point(667, 48);
+            buttonSelectFile.Location = new Point(689, 49);
             buttonSelectFile.Margin = new Padding(4, 3, 4, 3);
             buttonSelectFile.Name = "buttonSelectFile";
             buttonSelectFile.Size = new Size(88, 25);
-            buttonSelectFile.TabIndex = 13;
+            buttonSelectFile.TabIndex = 28;
+            buttonSelectFile.TabStop = false;
             buttonSelectFile.Text = "Seleccionar";
             buttonSelectFile.UseVisualStyleBackColor = true;
             // 
@@ -171,13 +178,15 @@
             videoView.Name = "videoView";
             videoView.Size = new Size(610, 283);
             videoView.TabIndex = 21;
+            videoView.TabStop = false;
             // 
             // webBrowserPlayer
             // 
             webBrowserPlayer.Location = new Point(167, 79);
             webBrowserPlayer.Name = "webBrowserPlayer";
             webBrowserPlayer.Size = new Size(610, 283);
-            webBrowserPlayer.TabIndex = 22;
+            webBrowserPlayer.TabIndex = 0;
+            webBrowserPlayer.TabStop = false;
             webBrowserPlayer.Visible = false;
             // 
             // panelControls
@@ -200,6 +209,7 @@
             playPauseButton.Name = "playPauseButton";
             playPauseButton.Size = new Size(80, 28);
             playPauseButton.TabIndex = 0;
+            playPauseButton.TabStop = false;
             playPauseButton.Text = "Play";
             playPauseButton.UseVisualStyleBackColor = true;
             // 
@@ -209,6 +219,7 @@
             backButton.Name = "backButton";
             backButton.Size = new Size(40, 28);
             backButton.TabIndex = 1;
+            backButton.TabStop = false;
             backButton.Text = "<";
             backButton.UseVisualStyleBackColor = true;
             // 
@@ -218,6 +229,7 @@
             forwardButton.Name = "forwardButton";
             forwardButton.Size = new Size(40, 28);
             forwardButton.TabIndex = 2;
+            forwardButton.TabStop = false;
             forwardButton.Text = ">";
             forwardButton.UseVisualStyleBackColor = true;
             // 
@@ -228,6 +240,7 @@
             trackBarPosition.Name = "trackBarPosition";
             trackBarPosition.Size = new Size(300, 45);
             trackBarPosition.TabIndex = 3;
+            trackBarPosition.TabStop = false;
             // 
             // labelTime
             // 
@@ -235,7 +248,7 @@
             labelTime.Location = new Point(505, 18);
             labelTime.Name = "labelTime";
             labelTime.Size = new Size(80, 20);
-            labelTime.TabIndex = 3;
+            labelTime.TabIndex = 4;
             labelTime.Text = "00:00/00:00";
             // 
             // trackBarVolume
@@ -245,7 +258,8 @@
             trackBarVolume.Name = "trackBarVolume";
             trackBarVolume.Orientation = Orientation.Vertical;
             trackBarVolume.Size = new Size(45, 52);
-            trackBarVolume.TabIndex = 4;
+            trackBarVolume.TabIndex = 5;
+            trackBarVolume.TabStop = false;
             trackBarVolume.Value = 100;
             // 
             // comboAudio
@@ -255,6 +269,7 @@
             comboAudio.Name = "comboAudio";
             comboAudio.Size = new Size(150, 23);
             comboAudio.TabIndex = 0;
+            comboAudio.TabStop = false;
             // 
             // comboSub
             // 
@@ -263,6 +278,7 @@
             comboSub.Name = "comboSub";
             comboSub.Size = new Size(150, 23);
             comboSub.TabIndex = 1;
+            comboSub.TabStop = false;
             // 
             // MainForm
             // 

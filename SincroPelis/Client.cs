@@ -25,12 +25,12 @@ namespace SincroPelis
 
                 socketClient.Connect(IPAddress.Parse(ip), Server.PORT);
                 socketClient.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socketClient);
-                KeyController.logThis("Conectado Bien " + Environment.UserName);
+                KeyController.Log("Conectado Bien " + Environment.UserName);
 
             }
             catch
             {
-                KeyController.logThis("Error al conectar");
+                KeyController.Log("Error al conectar");
             }
         }
 
@@ -43,7 +43,7 @@ namespace SincroPelis
             }
             catch (SocketException)
             {
-                KeyController.logThis("Error - no se pudo enviar/conectar.");
+                KeyController.Log("Error - no se pudo enviar/conectar.");
                 return;
             }
         }
@@ -59,7 +59,7 @@ namespace SincroPelis
             catch (SocketException)
             {
                 //Console.WriteLine("Conection lost: " + socketClient.RemoteEndPoint.ToString());
-                KeyController.logThis("Error - Servidor no accesible");
+                KeyController.Log("Error - Servidor no accesible");
                 socketClient.Close();
 
                 return;

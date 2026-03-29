@@ -79,7 +79,7 @@ namespace SincroPelis
 
             socketList.Add(socket);
             socket.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socket);
-            KeyController.logThis("New Client: " + socket.RemoteEndPoint.ToString());
+            KeyController.Log("New Client: " + socket.RemoteEndPoint.ToString());
             _serverSocket.BeginAccept(AcceptCallback, null);
         }
 
@@ -99,7 +99,7 @@ namespace SincroPelis
             }
             catch (SocketException) // Connection broken/error
             {
-                KeyController.logThis("Conexión perdida: " + current.RemoteEndPoint.ToString());
+                KeyController.Log("Conexión perdida: " + current.RemoteEndPoint.ToString());
                 current.Close();
                 socketList.Remove(current);
                 return;
