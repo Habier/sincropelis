@@ -266,14 +266,26 @@ namespace SincroPelis
             catch { }
         }
 
-        // Use Click for single-click play/pause and DoubleClick for fullscreen. This avoids
-        // relying on MouseClick/Clicks which can be unreliable depending on control styles.
-
         private void MainForm_KeyDown(object? sender, KeyEventArgs e)
         {
             try
             {
-                if (e.KeyCode == Keys.Escape)
+                if (e.KeyCode == Keys.Space)
+                {
+                    PlayPauseButton_Click(null, EventArgs.Empty);
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.Left)
+                {
+                    BackButton_Click(null, EventArgs.Empty);
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.Right)
+                {
+                    ForwardButton_Click(null, EventArgs.Empty);
+                    e.Handled = true;
+                }
+                else if (e.KeyCode == Keys.Escape)
                 {
                     if (_isFullscreen || (_mediaPlayer != null && _mediaPlayer.Fullscreen))
                     {
@@ -367,10 +379,7 @@ namespace SincroPelis
             labelDebug.Invoke(new Action(() => labelDebug.Text = text));
         }
 
-        // pause/play/stop buttons removed from UI; playback controlled via player UI or double-click/fullscreen
-
-
-
+        
 
         private void fullscreenButton_Click(object sender, EventArgs e)
         {
@@ -392,7 +401,7 @@ namespace SincroPelis
             {
                 if (_fsForm == null)
                 {
-                    _fsForm = new FullscreenForm(videoView, () =>
+                    _fsForm = new FullscreenForm(videoView, _mediaPlayer, () =>
                     {
                         _fsForm = null;
                         _isFullscreen = false;
@@ -538,7 +547,6 @@ namespace SincroPelis
 
         private void LoadFileToPlayer(string path, bool startPaused)
         {
-            // Prefer LibVLC player
             if (_mediaPlayer != null && _libVLC != null)
             {
                 try
@@ -558,20 +566,7 @@ namespace SincroPelis
                 }
             }
 
-            // Fallback to WebBrowser HTML5
-            try
-            {
-                var uri = new Uri(path);
-                var html = $"<html><body style=\"margin:0;background:black\"><video width=\"100%\" height=\"100%\" controls src=\"{uri.AbsoluteUri}\">Your browser does not support the video tag.</video></body></html>";
-                webBrowserPlayer.DocumentText = html;
-                webBrowserPlayer.Visible = true;
-                videoView.Visible = false;
-                SendDebug("Fichero cargado en reproductor integrado (WebBrowser).");
-            }
-            catch (Exception ex)
-            {
-                SendDebug("No hay reproductor disponible: " + ex.Message);
-            }
+            SendDebug("No hay reproductor disponible: ");
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
