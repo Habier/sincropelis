@@ -17,8 +17,6 @@ namespace SincroPelis
     public partial class MainForm : Form
     {
         private bool _isFullscreen = false;
-        private FormWindowState _previousWindowState;
-        private Rectangle _previousBounds;
         private LibVLC? _libVLC;
         private MediaPlayer? _mediaPlayer;
         private System.Windows.Forms.Timer? _timerWmpPoll;
@@ -27,6 +25,8 @@ namespace SincroPelis
         private System.Windows.Forms.Timer? _uiTimer;
         // Flag set while the user is interacting with the position trackbar to avoid UI glitches.
         private volatile bool _isSeeking = false;
+        // When true, the next LibVLC state event (Playing/Paused) will not emit a client message
+        private volatile bool _suppressClientEvent = false;
         // Enable/disable playback-related controls safely
         private void SetControlsEnabled(bool enabled)
         {
@@ -64,8 +64,10 @@ namespace SincroPelis
                 // start with controls disabled until media is ready
                 SetControlsEnabled(false);
                 WireMediaPlayerEvents();
-                // double click to toggle fullscreen
-                try { videoView.DoubleClick += (s, e) => ToggleFullscreen(); } catch { }
+                // mouse click: single click = play/pause, double click = fullscreen
+                try { videoView.Click += (s, e) => PlayPauseButton_Click(null, EventArgs.Empty); } catch { }
+                // allow form to receive key events (for ESC to exit fullscreen)
+                try { this.KeyPreview = true; this.KeyDown += MainForm_KeyDown; } catch { }
                 // wire control events (designer event hookups were removed; subscribe at runtime)
                 try { playPauseButton.Click += PlayPauseButton_Click; } catch { }
                 try { backButton.Click += BackButton_Click; } catch { }
@@ -130,12 +132,16 @@ namespace SincroPelis
                 {
                     if (_mediaPlayer.IsPlaying)
                     {
+                        // suppress the upcoming Paused event from emitting another client message
+                        _suppressClientEvent = true;
                         _mediaPlayer.Pause();
                         SafeInvoke(() => playPauseButton.Text = "Play");
                         Program.client.TrySend("pause");
                     }
                     else
                     {
+                        // suppress the upcoming Playing event from emitting another client message
+                        _suppressClientEvent = true;
                         _mediaPlayer.Play();
                         SafeInvoke(() => playPauseButton.Text = "Pause");
                         Program.client.TrySend("play");
@@ -242,6 +248,39 @@ namespace SincroPelis
                         labelTime.Text = string.Format("{0:mm\\:ss}/{1:mm\\:ss}", current, total);
                     });
                 }
+                // keep _isFullscreen in sync with LibVLC native fullscreen state
+                try
+                {
+                    if (_mediaPlayer != null)
+                    {
+                        var libFull = _mediaPlayer.Fullscreen;
+                        if (libFull != _isFullscreen)
+                        {
+                            _isFullscreen = libFull;
+                            SafeInvoke(() => { try { fullscreenButton.Text = libFull ? "Salir Pantalla" : "Pantalla Completa"; } catch { } });
+                        }
+                    }
+                }
+                catch { }
+            }
+            catch { }
+        }
+
+        // Use Click for single-click play/pause and DoubleClick for fullscreen. This avoids
+        // relying on MouseClick/Clicks which can be unreliable depending on control styles.
+
+        private void MainForm_KeyDown(object? sender, KeyEventArgs e)
+        {
+            try
+            {
+                if (e.KeyCode == Keys.Escape)
+                {
+                    if (_isFullscreen || (_mediaPlayer != null && _mediaPlayer.Fullscreen))
+                    {
+                        ToggleFullscreen();
+                        e.Handled = true;
+                    }
+                }
             }
             catch { }
         }
@@ -340,28 +379,40 @@ namespace SincroPelis
                 Program.client.TrySend("fullscreen");
             }
             catch { }
+            SendDebug("fullscreenButton clicked");
             ToggleFullscreen();
         }
 
+        private FullscreenForm? _fsForm = null;
+
         private void ToggleFullscreen()
         {
-            // Only toggle LibVLC native fullscreen mode.
+            SendDebug("ToggleFullscreen invoked");
             try
             {
-                if (!_isFullscreen)
+                if (_fsForm == null)
                 {
-                    try { if (_mediaPlayer != null) { _mediaPlayer.Fullscreen = true; videoView.BringToFront(); } } catch { }
+                    _fsForm = new FullscreenForm(videoView, () =>
+                    {
+                        _fsForm = null;
+                        _isFullscreen = false;
+                        SafeInvoke(() => fullscreenButton.Text = "Pantalla Completa");
+                    });
+                    _fsForm.Show();
                     _isFullscreen = true;
-                    try { fullscreenButton.Text = "Salir Pantalla"; } catch { }
+                    SafeInvoke(() => fullscreenButton.Text = "Salir Pantalla");
+                    SendDebug("Fullscreen opened");
                 }
                 else
                 {
-                    try { if (_mediaPlayer != null) _mediaPlayer.Fullscreen = false; } catch { }
-                    _isFullscreen = false;
-                    try { fullscreenButton.Text = "Pantalla Completa"; } catch { }
+                    _fsForm.Close();
+                    _fsForm = null;
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                SendDebug("ToggleFullscreen exception: " + ex.Message);
+            }
         }
 
         private void selfConnect()
@@ -549,8 +600,46 @@ namespace SincroPelis
         private void WireMediaPlayerEvents()
         {
             if (_mediaPlayer == null) return;
-            _mediaPlayer.Playing += (_, _) => { try { Program.client.TrySend("play"); SendDebug("LibVLC: Playing"); SafeInvoke(() => { playPauseButton.Text = "Pause"; SetControlsEnabled(true); }); } catch { } };
-            _mediaPlayer.Paused += (_, _) => { try { Program.client.TrySend("pause"); SendDebug("LibVLC: Paused"); SafeInvoke(() => playPauseButton.Text = "Play"); } catch { } };
+            _mediaPlayer.Playing += (_, _) =>
+            {
+                try
+                {
+                    // If this playing event was triggered by a local action where we already sent the
+                    // client message, suppress sending again. Reset the flag either way.
+                    if (_suppressClientEvent)
+                    {
+                        _suppressClientEvent = false;
+                    }
+                    else
+                    {
+                        Program.client.TrySend("play");
+                    }
+
+                    SendDebug("LibVLC: Playing");
+                    SafeInvoke(() => { playPauseButton.Text = "Pause"; SetControlsEnabled(true); });
+                }
+                catch { }
+            };
+
+            _mediaPlayer.Paused += (_, _) =>
+            {
+                try
+                {
+                    if (_suppressClientEvent)
+                    {
+                        _suppressClientEvent = false;
+                    }
+                    else
+                    {
+                        Program.client.TrySend("pause");
+                    }
+
+                    SendDebug("LibVLC: Paused");
+                    SafeInvoke(() => playPauseButton.Text = "Play");
+                }
+                catch { }
+            };
+
             _mediaPlayer.Stopped += (_, _) => { try { Program.client.TrySend("stop"); SendDebug("LibVLC: Stopped"); SafeInvoke(() => { playPauseButton.Text = "Play"; SetControlsEnabled(false); }); } catch { } };
             _mediaPlayer.EndReached += (_, _) => { try { Program.client.TrySend("ended"); SendDebug("LibVLC: Ended"); SafeInvoke(() => { playPauseButton.Text = "Play"; trackBarPosition.Value = 0; SetControlsEnabled(false); }); } catch { } };
             _mediaPlayer.LengthChanged += (_, _) => { try { SafeInvoke(() => UiTimer_Tick(null, EventArgs.Empty)); } catch { } };
