@@ -4,10 +4,10 @@ namespace SincroPelis
 {
     internal static class Program
     {
-        public static MainForm myForm;
+        public static MainForm myForm = null!;
         public static Server server = new Server();
         public static Client client = new Client();
-        public static Task serverTask;
+        public static Task serverTask = null!;
 
         /// <summary>
         ///  The main entry point for the application.

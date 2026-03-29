@@ -79,7 +79,7 @@ namespace SincroPelis
 
             socketList.Add(socket);
             socket.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socket);
-            KeyController.Log("New Client: " + socket.RemoteEndPoint.ToString());
+            KeyController.Log("New Client: " + socket.RemoteEndPoint?.ToString());
             _serverSocket.BeginAccept(AcceptCallback, null);
         }
 
@@ -90,18 +90,18 @@ namespace SincroPelis
         /// <param name="asyncronousResult"></param>
         private void ReceiveCallback(IAsyncResult asyncronousResult)
         {
-            Socket current = (Socket)asyncronousResult.AsyncState;
+            Socket? current = (Socket?)asyncronousResult.AsyncState;
             int received;
 
             try
             {
-                received = current.EndReceive(asyncronousResult);
+                received = current!.EndReceive(asyncronousResult);
             }
             catch (SocketException) // Connection broken/error
             {
-                KeyController.Log("Conexión perdida: " + current.RemoteEndPoint.ToString());
-                current.Close();
-                socketList.Remove(current);
+                KeyController.Log("Conexión perdida: " + current?.RemoteEndPoint?.ToString());
+                current?.Close();
+                if (current != null) socketList.Remove(current);
                 return;
             }
 

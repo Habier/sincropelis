@@ -19,8 +19,10 @@ namespace SincroPelis
         private bool _isFullscreen = false;
         private LibVLC? _libVLC;
         private MediaPlayer? _mediaPlayer;
+#pragma warning disable CS0169, CS0414
         private System.Windows.Forms.Timer? _timerWmpPoll;
         private int _lastWmpState = -1;
+#pragma warning restore CS0169, CS0414
         // UI timer used to update position/labels. Kept as field to pause/resume during seeking.
         private System.Windows.Forms.Timer? _uiTimer;
         // Flag set while the user is interacting with the position trackbar to avoid UI glitches.
@@ -80,16 +82,16 @@ namespace SincroPelis
                 try { comboAudio.SelectedIndexChanged += comboAudio_SelectedIndexChanged; } catch { }
                 try { comboSub.SelectedIndexChanged += comboSub_SelectedIndexChanged; } catch { }
                 // other UI events (were previously wired in designer)
-                try { fullscreenButton.Click += fullscreenButton_Click; } catch { }
-                try { buttonConnect.Click += buttonConnect_Click; } catch { }
-                try { textHost.TextChanged += textHost_TextChanged; } catch { }
+                try { fullscreenButton.Click += (s, e) => fullscreenButton_Click(this, e); } catch { }
+                try { buttonConnect.Click += (s, e) => buttonConnect_Click(this, e); } catch { }
+                try { textHost.TextChanged += (s, e) => textHost_TextChanged(this, e); } catch { }
 
-                try { checkBoxMaestro.CheckedChanged += checkBoxMaestro_CheckedChanged; } catch { }
-                try { textBoxPort.TextChanged += textBoxPort_TextChanged; } catch { }
-                try { textBoxPort.KeyPress += textBoxPort_KeyPress; } catch { }
-                try { buttonSelectFile.Click += buttonSelectFile_Click; } catch { }
-                try { textBoxFilePath.TextChanged += textBoxFilePath_TextChanged; } catch { }
-                try { videoView.Enter += videoView_Enter; } catch { }
+                try { checkBoxMaestro.CheckedChanged += (s, e) => checkBoxMaestro_CheckedChanged(this, e); } catch { }
+                try { textBoxPort.TextChanged += (s, e) => textBoxPort_TextChanged(this, e); } catch { }
+                try { textBoxPort.KeyPress += (s, e) => textBoxPort_KeyPress(this, e); } catch { }
+                try { buttonSelectFile.Click += (s, e) => buttonSelectFile_Click(this, e); } catch { }
+                try { textBoxFilePath.TextChanged += (s, e) => textBoxFilePath_TextChanged(this, e); } catch { }
+                try { videoView.Enter += (s, e) => videoView_Enter(this, e); } catch { }
                 try
                 {
                     if (_uiTimer == null)
@@ -333,7 +335,7 @@ namespace SincroPelis
                 {
                     for (int i = 0; i < comboAudio.Items.Count; i++)
                     {
-                        if (((ComboItem)comboAudio.Items[i]).Id == current)
+                        if (comboAudio.Items[i] is ComboItem ci && ci.Id == current)
                         {
                             comboAudio.SelectedIndex = i;
                             break;
@@ -367,7 +369,7 @@ namespace SincroPelis
                 {
                     for (int i = 0; i < comboSub.Items.Count; i++)
                     {
-                        if (((ComboItem)comboSub.Items[i]).Id == current)
+                        if (comboSub.Items[i] is ComboItem ci && ci.Id == current)
                         {
                             comboSub.SelectedIndex = i;
                             break;
