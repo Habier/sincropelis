@@ -69,7 +69,6 @@ namespace SincroPelis
             Array.Copy(_buffer, recBuf, received);
             string text = Encoding.ASCII.GetString(recBuf);
             Console.WriteLine("Texto recebido: " + text);
-            KeyController.SendKey2Process(Program.myForm.getProcessName());
 
 
             socketClient.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socketClient);

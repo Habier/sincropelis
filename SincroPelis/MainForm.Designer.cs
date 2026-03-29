@@ -32,13 +32,10 @@
             components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             fullscreenButton = new Button();
-            pName = new TextBox();
-            label1 = new Label();
             label2 = new Label();
             textHost = new TextBox();
             buttonConnect = new Button();
             labelDebug = new Label();
-            buttonSearch = new Button();
             checkBoxMaestro = new CheckBox();
             textBoxPort = new TextBox();
             label3 = new Label();
@@ -71,27 +68,6 @@
             fullscreenButton.TabIndex = 19;
             fullscreenButton.Text = "Pantalla Completa";
             fullscreenButton.UseVisualStyleBackColor = true;
-            // 
-            // pName
-            // 
-            pName.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            pName.Location = new Point(803, 14);
-            pName.Margin = new Padding(4, 3, 4, 3);
-            pName.Name = "pName";
-            pName.Size = new Size(116, 23);
-            pName.TabIndex = 1;
-            pName.Text = "mpc-hc64";
-            // 
-            // label1
-            // 
-            label1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            label1.AutoSize = true;
-            label1.Location = new Point(582, 17);
-            label1.Margin = new Padding(4, 0, 4, 0);
-            label1.Name = "label1";
-            label1.Size = new Size(139, 15);
-            label1.TabIndex = 2;
-            label1.Text = "Nombre del Reproductor";
             // 
             // label2
             // 
@@ -131,17 +107,6 @@
             labelDebug.Name = "labelDebug";
             labelDebug.Size = new Size(0, 15);
             labelDebug.TabIndex = 6;
-            // 
-            // buttonSearch
-            // 
-            buttonSearch.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            buttonSearch.Location = new Point(803, 45);
-            buttonSearch.Margin = new Padding(4, 3, 4, 3);
-            buttonSearch.Name = "buttonSearch";
-            buttonSearch.Size = new Size(117, 29);
-            buttonSearch.TabIndex = 7;
-            buttonSearch.Text = "Auto buscar";
-            buttonSearch.UseVisualStyleBackColor = true;
             // 
             // checkBoxMaestro
             // 
@@ -311,13 +276,10 @@
             Controls.Add(label3);
             Controls.Add(textBoxPort);
             Controls.Add(checkBoxMaestro);
-            Controls.Add(buttonSearch);
             Controls.Add(labelDebug);
             Controls.Add(buttonConnect);
             Controls.Add(label2);
             Controls.Add(textHost);
-            Controls.Add(label1);
-            Controls.Add(pName);
             Controls.Add(fullscreenButton);
             Controls.Add(textBoxFilePath);
             Controls.Add(buttonSelectFile);
@@ -338,13 +300,10 @@
         #endregion
 
         private System.Windows.Forms.Button fullscreenButton;
-        private System.Windows.Forms.TextBox pName;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textHost;
         private System.Windows.Forms.Button buttonConnect;
         private System.Windows.Forms.Label labelDebug;
-        private System.Windows.Forms.Button buttonSearch;
         private System.Windows.Forms.CheckBox checkBoxMaestro;
         private System.Windows.Forms.TextBox textBoxPort;
         private System.Windows.Forms.Label label3;

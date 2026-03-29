@@ -82,8 +82,7 @@ namespace SincroPelis
                 try { fullscreenButton.Click += fullscreenButton_Click; } catch { }
                 try { buttonConnect.Click += buttonConnect_Click; } catch { }
                 try { textHost.TextChanged += textHost_TextChanged; } catch { }
-                try { pName.TextChanged += pName_TextChanged; } catch { }
-                try { buttonSearch.Click += buttonSearch_Click; } catch { }
+
                 try { checkBoxMaestro.CheckedChanged += checkBoxMaestro_CheckedChanged; } catch { }
                 try { textBoxPort.TextChanged += textBoxPort_TextChanged; } catch { }
                 try { textBoxPort.KeyPress += textBoxPort_KeyPress; } catch { }
@@ -120,7 +119,7 @@ namespace SincroPelis
         private void Form1_Load(object sender, EventArgs e)
         {
             textHost.Text = Settings.Default.host;
-            pName.Text = Settings.Default.videoplayer;
+
             textBoxPort.Text = Settings.Default.port.ToString();
         }
 
@@ -459,11 +458,7 @@ namespace SincroPelis
             Settings.Default.Save();
         }
 
-        private void pName_TextChanged(object sender, EventArgs e)
-        {
-            Settings.Default.videoplayer = pName.Text;
-            Settings.Default.Save();
-        }
+
         private void textBoxPort_TextChanged(object sender, EventArgs e)
         {
             int number = 9000; //Default port;
@@ -478,17 +473,7 @@ namespace SincroPelis
             Server.PORT = number;
         }
 
-        private void buttonSearch_Click(object sender, EventArgs e)
-        {
-            var playerName = PlayerFinder.find();
-            if (playerName != String.Empty)
-                pName.Text = playerName;
-        }
 
-        public string getProcessName()
-        {
-            return pName.Text;
-        }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
