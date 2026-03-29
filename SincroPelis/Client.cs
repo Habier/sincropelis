@@ -17,6 +17,8 @@ namespace SincroPelis
 
         private byte[] _buffer = new byte[_BUFFER_SIZE];
 
+        public event Action<string>? OnMessageReceived;
+
         public void TryConnect(string ip)
         {
             try
@@ -68,8 +70,9 @@ namespace SincroPelis
             byte[] recBuf = new byte[received];
             Array.Copy(_buffer, recBuf, received);
             string text = Encoding.ASCII.GetString(recBuf);
-            Console.WriteLine("Texto recebido: " + text);
+            Console.WriteLine("Texto頸cebido: " + text);
 
+            OnMessageReceived?.Invoke(text);
 
             socketClient.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socketClient);
         }

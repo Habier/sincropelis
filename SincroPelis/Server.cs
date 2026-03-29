@@ -37,14 +37,21 @@ namespace SincroPelis
             Program.client.TryConnect("127.0.0.1");
         }
         
-        private void Send2All()
+        private void Send2All(string message, Socket? excludeSocket = null)
         {
             foreach (Socket socket in socketList)
             {
-                byte[] data = Encoding.ASCII.GetBytes("Pausen");
-                socket.Send(data);
+                if (socket != excludeSocket)
+                {
+                    try
+                    {
+                        byte[] data = Encoding.ASCII.GetBytes(message);
+                        socket.Send(data);
+                    }
+                    catch { }
+                }
             }
-            Console.WriteLine("Pause sent to all");
+            Console.WriteLine("Sent to all: " + message);
         }
 
         private void CloseAll()
@@ -111,14 +118,7 @@ namespace SincroPelis
             Console.WriteLine("Texto recebido: " + text);
 
 
-            if (text == "pause")
-            {
-                Send2All(); // pause requested
-            }
-            else
-            {
-                //get name
-            }
+            Send2All(text, current);
 
             current.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, current);
         }

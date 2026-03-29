@@ -84,6 +84,7 @@ namespace SincroPelis
                 // other UI events (were previously wired in designer)
                 try { fullscreenButton.Click += (s, e) => fullscreenButton_Click(this, e); } catch { }
                 try { buttonConnect.Click += (s, e) => buttonConnect_Click(this, e); } catch { }
+                try { Program.client.OnMessageReceived += OnSocketMessageReceived; } catch { }
                 try { textHost.TextChanged += (s, e) => textHost_TextChanged(this, e); } catch { }
 
                 try { checkBoxMaestro.CheckedChanged += (s, e) => checkBoxMaestro_CheckedChanged(this, e); } catch { }
@@ -228,7 +229,6 @@ namespace SincroPelis
                 if (_mediaPlayer != null)
                 {
                     _mediaPlayer.Volume = trackBarVolume.Value;
-                    Program.client.TrySend($"volume:{trackBarVolume.Value}");
                 }
             }
             catch { }
@@ -391,11 +391,6 @@ namespace SincroPelis
 
         private void fullscreenButton_Click(object sender, EventArgs e)
         {
-            try
-            {
-                Program.client.TrySend("fullscreen");
-            }
-            catch { }
             SendDebug("fullscreenButton clicked");
             ToggleFullscreen();
         }
@@ -429,6 +424,79 @@ namespace SincroPelis
             catch (Exception ex)
             {
                 SendDebug("ToggleFullscreen exception: " + ex.Message);
+            }
+        }
+
+        private void OnSocketMessageReceived(string message)
+        {
+            try
+            {
+                _suppressClientEvent = true;
+
+                if (message == "pause")
+                {
+                    _mediaPlayer?.Pause();
+                    SafeInvoke(() => playPauseButton.Text = "Pause");
+                }
+                else if (message == "play")
+                {
+                    _mediaPlayer?.Play();
+                    SafeInvoke(() => playPauseButton.Text = "Play");
+                }
+                else if (message == "stop")
+                {
+                    _mediaPlayer?.Stop();
+                    SafeInvoke(() => { playPauseButton.Text = "Play"; trackBarPosition.Value = 0; });
+                }
+                else if (message == "ended")
+                {
+                    SafeInvoke(() => { playPauseButton.Text = "Play"; trackBarPosition.Value = 0; });
+                }
+                else if (message.StartsWith("seek:"))
+                {
+                    var posStr = message.Substring(5);
+                    if (double.TryParse(posStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double pos))
+                    {
+                        if (_mediaPlayer != null && _mediaPlayer.Length > 0)
+                        {
+                            _mediaPlayer.Position = (float)pos;
+                        }
+                    }
+                }
+                else if (message.StartsWith("seekby:"))
+                {
+                    var secStr = message.Substring(7);
+                    if (int.TryParse(secStr, out int sec) && _mediaPlayer != null)
+                    {
+                        var newTime = Math.Max(0, Math.Min(_mediaPlayer.Length, _mediaPlayer.Time + sec * 1000));
+                        _mediaPlayer.Time = newTime;
+                    }
+                }
+
+
+                else if (message.StartsWith("audio:"))
+                {
+                    var idStr = message.Substring(6);
+                    if (int.TryParse(idStr, out int id) && _mediaPlayer != null)
+                    {
+                        _mediaPlayer.SetAudioTrack(id);
+                    }
+                }
+                else if (message.StartsWith("sub:"))
+                {
+                    var idStr = message.Substring(4);
+                    if (int.TryParse(idStr, out int id) && _mediaPlayer != null)
+                    {
+                        _mediaPlayer.SetSpu(id);
+                    }
+                }
+
+                SendDebug("Socket: " + message);
+            }
+            catch { }
+            finally
+            {
+                _suppressClientEvent = false;
             }
         }
 
