@@ -46,7 +46,33 @@ namespace SincroPelis
         public MainForm()
         {
             InitializeComponent();
-            // Initialize LibVLC and VideoView
+
+            if (!VLCDownloader.IsVLCAvailable())
+            {
+                var result = MessageBox.Show(
+                    "VLC no encontrado. ¿Deseas descargarlo automáticamente?",
+                    "VLC requerido",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+
+                if (result == DialogResult.Yes)
+                {
+                    using var downloadForm = new VLCDownloadForm();
+                    if (downloadForm.ShowDialog() != DialogResult.OK)
+                    {
+                        MessageBox.Show("VLC es requerido para reproducir video.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        Application.Exit();
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("VLC es requerido para reproducir video.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    Application.Exit();
+                    return;
+                }
+            }
+
             try
             {
                 LibVLCSharp.Shared.Core.Initialize();

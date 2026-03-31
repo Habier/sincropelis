@@ -1,6 +1,6 @@
 param(
     [string]$Configuration = "Release",
-    [string]$OutputDir = ".\release"
+    [string]$OutputDir = ".\dist"
 )
 
 $ErrorActionPreference = "Stop"
@@ -11,41 +11,19 @@ $projectPath = ".\SincroPelis\SincroPelis.csproj"
 
 dotnet publish $projectPath -c $Configuration -o "$OutputDir\publish-full"
 
-Write-Host "Filtering VLC plugins..." -ForegroundColor Cyan
-
-$publishDir = "$OutputDir\publish-full"
-$pluginsDir = "$publishDir\libvlc\win-x64\plugins"
-
-$requiredPlugins = @(
-    "audio_output",
-    "video_output", 
-    "video_filter",
-    "demux",
-    "codec",
-    "video_splitter",
-    "meta_engine",
-    "video_chroma",
-    "access",
-    "access_output",
-    "packetizer",
-    "stream_filter",
-    "text_renderer"
-)
-
-Get-ChildItem $pluginsDir -Directory | ForEach-Object {
-    $pluginName = $_.Name
-    if ($requiredPlugins -notcontains $pluginName) {
-        Write-Host "  Removing: $pluginName" -ForegroundColor Gray
-        Remove-Item $_.FullName -Recurse -Force
-    }
-}
-
 $releaseDir = "$OutputDir\SincroPelis-v1.0"
 if (Test-Path $releaseDir) {
     Remove-Item $releaseDir -Recurse -Force
 }
 
-Copy-Item "$publishDir\*" $releaseDir -Recurse
+New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
+
+Copy-Item "$OutputDir\publish-full\*" $releaseDir -Recurse
+
+Write-Host "Removing libvlc folder..." -ForegroundColor Cyan
+if (Test-Path "$releaseDir\libvlc") {
+    Remove-Item "$releaseDir\libvlc" -Recurse -Force
+}
 
 Write-Host "Creating ZIP..." -ForegroundColor Cyan
 
