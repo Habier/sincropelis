@@ -1,0 +1,30 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [master, main]
+  push:
+    branches: [master, main]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore SincroPelis.Tests/SincroPelis.Tests.csproj
+
+      - name: Build
+        run: dotnet build SincroPelis.Tests/SincroPelis.Tests.csproj --configuration Release --no-restore
+
+      - name: Run tests
+        run: dotnet test SincroPelis.Tests/SincroPelis.Tests.csproj --configuration Release --no-build --verbosity normal

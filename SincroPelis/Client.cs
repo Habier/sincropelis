@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SincroPelis
 {
-    class Client
+    public class Client
     {
         Socket socketClient = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -30,9 +30,9 @@ namespace SincroPelis
                 KeyController.Log("Conectado Bien " + Environment.UserName);
 
             }
-            catch
+            catch (Exception ex)
             {
-                KeyController.Log("Error al conectar");
+                Logger.Error("Error al conectar: " + ex.Message, ex);
             }
         }
 
@@ -43,9 +43,9 @@ namespace SincroPelis
                 byte[] data = Encoding.ASCII.GetBytes(msg);
                 socketClient.Send(data);
             }
-            catch (SocketException)
+            catch (SocketException ex)
             {
-                KeyController.Log("Error - no se pudo enviar/conectar.");
+                Logger.Error("Error al enviar mensaje: " + ex.Message, ex);
                 return;
             }
         }
@@ -58,10 +58,9 @@ namespace SincroPelis
             {
                 received = socketClient.EndReceive(asyncronousResult);
             }
-            catch (SocketException)
+            catch (SocketException ex)
             {
-                //Console.WriteLine("Conection lost: " + socketClient.RemoteEndPoint.ToString());
-                KeyController.Log("Error - Servidor no accesible");
+                Logger.Error("Conexión perdida con el servidor: " + ex.Message, ex);
                 socketClient.Close();
 
                 return;
@@ -70,7 +69,7 @@ namespace SincroPelis
             byte[] recBuf = new byte[received];
             Array.Copy(_buffer, recBuf, received);
             string text = Encoding.ASCII.GetString(recBuf);
-            Console.WriteLine("Texto頸cebido: " + text);
+            Logger.Debug("Mensaje recibido: " + text);
 
             OnMessageReceived?.Invoke(text);
 

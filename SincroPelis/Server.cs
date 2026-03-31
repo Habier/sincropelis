@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SincroPelis
 {
-    class Server
+    public class Server
     {
         private Socket _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -23,7 +23,7 @@ namespace SincroPelis
         {
             if (!started)
             {
-                Console.WriteLine("Servidor Socket ON");
+                Logger.Info("Servidor iniciado en puerto " + PORT);
                 _serverSocket.Bind(new IPEndPoint(IPAddress.Any, PORT));
                 _serverSocket.Listen(5);
                 _serverSocket.BeginAccept(AcceptCallback, null);
@@ -48,10 +48,13 @@ namespace SincroPelis
                         byte[] data = Encoding.ASCII.GetBytes(message);
                         socket.Send(data);
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Error al enviar a cliente: " + ex.Message, ex);
+                    }
                 }
             }
-            Console.WriteLine("Sent to all: " + message);
+            Logger.Debug("Enviado a todos: " + message);
         }
 
         private void CloseAll()
@@ -86,7 +89,7 @@ namespace SincroPelis
 
             socketList.Add(socket);
             socket.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socket);
-            KeyController.Log("New Client: " + socket.RemoteEndPoint?.ToString());
+            Logger.Info("Nuevo cliente conectado: " + socket.RemoteEndPoint?.ToString());
             _serverSocket.BeginAccept(AcceptCallback, null);
         }
 
@@ -104,9 +107,9 @@ namespace SincroPelis
             {
                 received = current!.EndReceive(asyncronousResult);
             }
-            catch (SocketException) // Connection broken/error
+            catch (SocketException ex) // Connection broken/error
             {
-                KeyController.Log("Conexión perdida: " + current?.RemoteEndPoint?.ToString());
+                Logger.Error("Conexión perdida: " + current?.RemoteEndPoint?.ToString(), ex);
                 current?.Close();
                 if (current != null) socketList.Remove(current);
                 return;
@@ -115,7 +118,7 @@ namespace SincroPelis
             byte[] recBuf = new byte[received];
             Array.Copy(_buffer, recBuf, received);
             string text = Encoding.ASCII.GetString(recBuf);
-            Console.WriteLine("Texto recebido: " + text);
+            Logger.Debug("Mensaje recibido del cliente: " + text);
 
 
             Send2All(text, current);

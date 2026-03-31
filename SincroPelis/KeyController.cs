@@ -5,7 +5,7 @@ using System.Windows.Forms;
 
 namespace SincroPelis
 {
-    static class KeyController
+    public static class KeyController
     {
         public enum Shortcut
         {
@@ -133,7 +133,7 @@ namespace SincroPelis
 
         public static void Log(string msg)
         {
-            Console.WriteLine(msg);
+            Logger.Info(msg);
             Program.myForm?.SendDebug(msg);
         }
     }

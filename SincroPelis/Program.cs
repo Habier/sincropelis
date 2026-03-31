@@ -1,3 +1,4 @@
+using System;
 using System.Windows.Forms;
 
 namespace SincroPelis
@@ -9,19 +10,39 @@ namespace SincroPelis
         public static Client client = new Client();
         public static Task serverTask = null!;
 
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
-            KeyController.Start();
-            myForm = new MainForm();
-            Application.Run(myForm);
-            KeyController.Stop();
+            AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
+
+            Logger.Initialize();
+            Logger.Info("Application starting");
+
+            try
+            {
+                ApplicationConfiguration.Initialize();
+                KeyController.Start();
+                myForm = new MainForm();
+                Application.Run(myForm);
+                KeyController.Stop();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Unhandled exception in main", ex);
+                throw;
+            }
+            finally
+            {
+                Logger.Shutdown();
+            }
+        }
+
+        private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            var ex = e.ExceptionObject as Exception;
+            Logger.Error("FATAL: Unhandled exception", ex);
+            Logger.Shutdown();
+            Environment.Exit(1);
         }
     }
 }
