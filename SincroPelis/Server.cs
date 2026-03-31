@@ -25,7 +25,7 @@ namespace SincroPelis
         {
             if (!started)
             {
-                Logger.Info("Servidor iniciado en puerto " + PORT);
+                Logger.Info($"Server started on port {PORT}");
                 _serverSocket.Bind(new IPEndPoint(IPAddress.Any, PORT));
                 _serverSocket.Listen(5);
                 _serverSocket.BeginAccept(AcceptCallback, null);
@@ -52,11 +52,11 @@ namespace SincroPelis
                     }
                     catch (Exception ex)
                     {
-                        Logger.Error("Error al enviar a cliente: " + ex.Message, ex);
+                                                                        Logger.Error($"Failed to send to client: {ex.Message}", ex);
                     }
                 }
             }
-            Logger.Debug("Enviado a todos: " + message);
+                                    Logger.Debug($"Broadcasting: {message}");
         }
 
         private void CloseAll()
@@ -91,7 +91,7 @@ namespace SincroPelis
 
             socketList.Add(socket);
             socket.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socket);
-            Logger.Info("Nuevo cliente conectado: " + socket.RemoteEndPoint?.ToString());
+                                    Logger.Info($"New client connected: {socket.RemoteEndPoint}");
             _serverSocket.BeginAccept(AcceptCallback, null);
         }
 
@@ -111,7 +111,7 @@ namespace SincroPelis
             }
             catch (SocketException ex) // Connection broken/error
             {
-                Logger.Error("Conexión perdida: " + current?.RemoteEndPoint?.ToString(), ex);
+                                                Logger.Error($"Connection lost: {current?.RemoteEndPoint}", ex);
                 current?.Close();
                 if (current != null) socketList.Remove(current);
                 return;
@@ -120,7 +120,7 @@ namespace SincroPelis
             byte[] recBuf = new byte[received];
             Array.Copy(_buffer, recBuf, received);
             string text = Encoding.ASCII.GetString(recBuf);
-            Logger.Debug("Mensaje recibido del cliente: " + text);
+                                    Logger.Debug($"Received from client: {text}");
 
 
             Send2All(text, current);

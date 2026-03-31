@@ -27,12 +27,12 @@ namespace SincroPelis
 
                 socketClient.Connect(IPAddress.Parse(ip), Server.PORT);
                 socketClient.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socketClient);
-                KeyController.Log("Conectado Bien " + Environment.UserName);
+                Logger.Info($"Client connected to server as {Environment.UserName}");
 
             }
             catch (Exception ex)
             {
-                Logger.Error("Error al conectar: " + ex.Message, ex);
+                                                Logger.Error($"Connection error: {ex.Message}", ex);
             }
         }
 
@@ -45,7 +45,7 @@ namespace SincroPelis
             }
             catch (SocketException ex)
             {
-                Logger.Error("Error al enviar mensaje: " + ex.Message, ex);
+                                                Logger.Error($"Failed to send message: {ex.Message}", ex);
                 return;
             }
         }
@@ -60,7 +60,7 @@ namespace SincroPelis
             }
             catch (SocketException ex)
             {
-                Logger.Error("Conexión perdida con el servidor: " + ex.Message, ex);
+                                                Logger.Error($"Connection lost with server: {ex.Message}", ex);
                 socketClient.Close();
 
                 return;
@@ -69,7 +69,7 @@ namespace SincroPelis
             byte[] recBuf = new byte[received];
             Array.Copy(_buffer, recBuf, received);
             string text = Encoding.ASCII.GetString(recBuf);
-            Logger.Debug("Mensaje recibido: " + text);
+                                    Logger.Debug($"Received message: {text}");
 
             OnMessageReceived?.Invoke(text);
 

@@ -16,7 +16,7 @@ namespace SincroPelis
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
 
             Logger.Initialize();
-            Logger.Info("Application starting");
+                        Logger.Info("Application starting");
 
             try
             {
@@ -28,7 +28,7 @@ namespace SincroPelis
             }
             catch (Exception ex)
             {
-                Logger.Error("Unhandled exception in main", ex);
+                                Logger.Error("Unhandled exception in main", ex);
                 throw;
             }
             finally
@@ -40,7 +40,7 @@ namespace SincroPelis
         private static void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             var ex = e.ExceptionObject as Exception;
-            Logger.Error("FATAL: Unhandled exception", ex);
+                        Logger.Error("FATAL: Unhandled exception", ex);
             Logger.Shutdown();
             Environment.Exit(1);
         }

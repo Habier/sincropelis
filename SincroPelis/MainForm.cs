@@ -109,8 +109,8 @@ namespace SincroPelis
             }
             catch (Exception ex)
             {
-                Logger.Error("LibVLC init failed: " + ex.Message, ex);
-                SendDebug("LibVLC init failed: " + ex.Message);
+                                Logger.Error($"LibVLC initialization failed: {ex.Message}", ex);
+                SendDebug($"Error al inicializar LibVLC: {ex.Message}");
             }
         }
 
@@ -153,7 +153,7 @@ namespace SincroPelis
             }
             catch (Exception ex)
             {
-                Logger.Error("Error en PlayPauseButton_Click", ex);
+                                Logger.Error("Error in PlayPauseButton_Click handler", ex);
             }
         }
 
@@ -172,7 +172,7 @@ namespace SincroPelis
             }
             catch (Exception ex)
             {
-                Logger.Error("Error en StopButton_Click", ex);
+                Logger.Error("Error in StopButton_Click handler", ex);
             }
         }
 
@@ -760,7 +760,7 @@ namespace SincroPelis
             }
             catch (Exception ex)
             {
-                Logger.Error("Error en comboSub_SelectedIndexChanged", ex);
+                Logger.Error("Error in comboSub_SelectedIndexChanged handler", ex);
             }
         }
     }
