@@ -53,6 +53,7 @@
             trackBarVolume = new TrackBar();
             comboAudio = new ComboBox();
             comboSub = new ComboBox();
+            labelConnectedUsers = new Label();
             ((System.ComponentModel.ISupportInitialize)videoView).BeginInit();
             panelControls.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)trackBarPosition).BeginInit();
@@ -280,6 +281,15 @@
             comboSub.TabIndex = 1;
             comboSub.TabStop = false;
             // 
+            // labelConnectedUsers
+            // 
+            labelConnectedUsers.AutoSize = true;
+            labelConnectedUsers.Location = new Point(843, 504);
+            labelConnectedUsers.Name = "labelConnectedUsers";
+            labelConnectedUsers.Size = new Size(0, 15);
+            labelConnectedUsers.TabIndex = 25;
+            labelConnectedUsers.Visible = false;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -293,6 +303,7 @@
             Controls.Add(textBoxPort);
             Controls.Add(checkBoxMaestro);
             Controls.Add(labelDebug);
+            Controls.Add(labelConnectedUsers);
             Controls.Add(buttonConnect);
             Controls.Add(label2);
             Controls.Add(textHost);
@@ -338,6 +349,7 @@
         private System.Windows.Forms.Label labelTime;
         private System.Windows.Forms.ComboBox comboAudio;
         private System.Windows.Forms.ComboBox comboSub;
+        private System.Windows.Forms.Label labelConnectedUsers;
         // checkDisableHw removed
     }
 }

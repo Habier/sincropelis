@@ -270,6 +270,11 @@ namespace SincroPelis
                     }
                 }
                 catch { }
+                // update connected users count if in server mode
+                if (checkBoxMaestro.Checked)
+                {
+                    SafeInvoke(() => labelConnectedUsers.Text = $"Conectados: {Program.server.ConnectedClients}");
+                }
             }
             catch { }
         }
@@ -573,6 +578,11 @@ namespace SincroPelis
         private void checkBoxMaestro_CheckedChanged(object sender, EventArgs e)
         {
             textHost.Enabled = !checkBoxMaestro.Checked;
+            labelConnectedUsers.Visible = checkBoxMaestro.Checked;
+            if (!checkBoxMaestro.Checked)
+            {
+                labelConnectedUsers.Text = "";
+            }
         }
 
         private void textBoxPort_KeyPress(object sender, KeyPressEventArgs e)

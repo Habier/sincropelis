@@ -19,6 +19,8 @@ namespace SincroPelis
         private byte[] _buffer = new byte[_BUFFER_SIZE];
         private bool started = false;
 
+        public int ConnectedClients => socketList.Count;
+
         public void start()
         {
             if (!started)
