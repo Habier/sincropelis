@@ -11,6 +11,13 @@ namespace SincroPelis
         private static readonly string VLCDownloadUrl = "https://get.videolan.org/vlc/3.0.20/win64/vlc-3.0.20-win64.zip";
         private static readonly string VLCVersion = "3.0.20";
 
+        private static readonly string[] SystemVLCLocations = new[]
+        {
+            @"C:\Program Files\VideoLAN\VLC",
+            @"C:\Program Files (x86)\VideoLAN\VLC",
+            Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VLC")
+        };
+
         public static string GetVLCLibPath()
         {
             string appDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -20,7 +27,34 @@ namespace SincroPelis
         public static bool IsVLCAvailable()
         {
             string libPath = GetVLCLibPath();
-            return Directory.Exists(libPath) && Directory.GetFiles(libPath, "*.dll").Length > 0;
+            if (Directory.Exists(libPath) && Directory.GetFiles(libPath, "*.dll").Length > 0)
+                return true;
+
+            foreach (var vlcPath in SystemVLCLocations)
+            {
+                if (Directory.Exists(vlcPath))
+                {
+                    string dllPath = Path.Combine(vlcPath, "libvlc.dll");
+                    if (File.Exists(dllPath))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static string? GetSystemVLCLibPath()
+        {
+            foreach (var vlcPath in SystemVLCLocations)
+            {
+                if (Directory.Exists(vlcPath))
+                {
+                    string dllPath = Path.Combine(vlcPath, "libvlc.dll");
+                    if (File.Exists(dllPath))
+                        return vlcPath;
+                }
+            }
+            return null;
         }
 
         public static async Task<bool> DownloadAndExtractAsync(IProgress<string>? progress = null)

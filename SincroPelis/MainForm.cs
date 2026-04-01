@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -47,6 +48,13 @@ namespace SincroPelis
         {
             InitializeComponent();
 
+            string? systemVLCLibPath = VLCDownloader.GetSystemVLCLibPath();
+            if (!string.IsNullOrEmpty(systemVLCLibPath))
+            {
+                Environment.SetEnvironmentVariable("LIBVLC_PATH", systemVLCLibPath);
+                Environment.SetEnvironmentVariable("LIBVLC_PLUGINS", Path.Combine(systemVLCLibPath, "plugins"));
+            }
+
             if (!VLCDownloader.IsVLCAvailable())
             {
                 var result = MessageBox.Show(
@@ -75,7 +83,14 @@ namespace SincroPelis
 
             try
             {
-                LibVLCSharp.Shared.Core.Initialize();
+                if (!string.IsNullOrEmpty(systemVLCLibPath))
+                {
+                    LibVLCSharp.Shared.Core.Initialize(systemVLCLibPath);
+                }
+                else
+                {
+                    LibVLCSharp.Shared.Core.Initialize();
+                }
                 try
                 {
                     _libVLC = new LibVLC(new string[] { "--vout=direct3d11", "--no-video-title-show" });

@@ -11,26 +11,26 @@ namespace SincroPelis
         private Label labelStatus;
         private ProgressBar progressBar;
         private Button buttonCancel;
-        private TaskCompletionSource<bool>? _tcs;
         private bool _downloadCompleted = false;
 
         public VLCDownloadForm()
         {
             InitializeComponent();
+            this.Load += VLCDownloadForm_Load;
+        }
+
+        private void InitializeComponent()
+        {
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.StartPosition = FormStartPosition.CenterScreen;
             this.ClientSize = new Size(400, 180);
             this.Text = "Descargando VLC";
-            this.Load += VLCDownloadForm_Load;
-        }
 
-        private void InitializeComponent()
-        {
             labelTitle = new Label
             {
-                Text = "VLC no encontrado. ¿Deseas descargarlo?",
+                Text = "Descargando VLC...",
                 Location = new Point(20, 20),
                 Size = new Size(360, 30),
                 Font = new Font("Segoe UI", 11, FontStyle.Bold),
@@ -39,39 +39,40 @@ namespace SincroPelis
 
             labelStatus = new Label
             {
-                Text = "",
-                Location = new Point(20, 100),
+                Text = "Preparando...",
+                Location = new Point(20, 60),
                 Size = new Size(360, 25),
                 TextAlign = ContentAlignment.MiddleCenter
             };
 
             progressBar = new ProgressBar
             {
-                Location = new Point(20, 130),
+                Location = new Point(20, 95),
                 Size = new Size(360, 25),
-                Style = ProgressBarStyle.Continuous,
-                Visible = false
+                Style = ProgressBarStyle.Continuous
             };
 
             buttonCancel = new Button
             {
                 Text = "Cancelar",
-                Location = new Point(150, 60),
+                Location = new Point(150, 135),
                 Size = new Size(100, 30)
             };
             buttonCancel.Click += ButtonCancel_Click;
+
+            this.Controls.Add(labelTitle);
+            this.Controls.Add(labelStatus);
+            this.Controls.Add(progressBar);
+            this.Controls.Add(buttonCancel);
         }
 
         private async void VLCDownloadForm_Load(object sender, EventArgs e)
         {
-            _tcs = new TaskCompletionSource<bool>();
-
             var progress = new Progress<string>(msg =>
             {
                 labelStatus.Text = msg;
                 if (msg.Contains("%"))
                 {
-                    progressBar.Visible = true;
                     var parts = msg.Split('(');
                     if (parts.Length > 1 && parts[1].Contains("%"))
                     {
@@ -82,19 +83,26 @@ namespace SincroPelis
                 }
             });
 
-            var success = await VLCDownloader.DownloadAndExtractAsync(progress);
-
-            _downloadCompleted = success;
-
-            if (success)
+            try
             {
-                labelStatus.Text = "¡VLC descargado! Iniciando...";
-                this.DialogResult = DialogResult.OK;
-                this.Close();
+                var success = await VLCDownloader.DownloadAndExtractAsync(progress);
+                _downloadCompleted = success;
+
+                if (success)
+                {
+                    labelStatus.Text = "¡VLC descargado!";
+                    this.DialogResult = DialogResult.OK;
+                    this.Close();
+                }
+                else
+                {
+                    labelStatus.Text = "Error al descargar VLC.";
+                    buttonCancel.Text = "Cerrar";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                labelStatus.Text = "Error al descargar VLC. Puedes descargarlo manualmente desde videolan.org";
+                labelStatus.Text = $"Error: {ex.Message}";
                 buttonCancel.Text = "Cerrar";
             }
         }
