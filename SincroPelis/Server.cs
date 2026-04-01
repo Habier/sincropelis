@@ -38,7 +38,7 @@ namespace SincroPelis
             Program.server.start();
             Program.client.TryConnect("127.0.0.1");
         }
-        
+
         private void Send2All(string message, Socket? excludeSocket = null)
         {
             foreach (Socket socket in socketList)
@@ -52,11 +52,11 @@ namespace SincroPelis
                     }
                     catch (Exception ex)
                     {
-                                                                        Logger.Error($"Failed to send to client: {ex.Message}", ex);
+                        Logger.Error($"Failed to send to client: {ex.Message}", ex);
                     }
                 }
             }
-                                    Logger.Debug($"Broadcasting: {message}");
+            Logger.Debug($"Broadcasting: {message}");
         }
 
         private void CloseAll()
@@ -91,7 +91,7 @@ namespace SincroPelis
 
             socketList.Add(socket);
             socket.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socket);
-                                    Logger.Info($"New client connected: {socket.RemoteEndPoint}");
+            Logger.Info($"New client connected: {socket.RemoteEndPoint}");
             _serverSocket.BeginAccept(AcceptCallback, null);
         }
 
@@ -111,7 +111,7 @@ namespace SincroPelis
             }
             catch (SocketException ex) // Connection broken/error
             {
-                                                Logger.Error($"Connection lost: {current?.RemoteEndPoint}", ex);
+                Logger.Error($"Connection lost: {current?.RemoteEndPoint}", ex);
                 current?.Close();
                 if (current != null) socketList.Remove(current);
                 return;
@@ -120,7 +120,7 @@ namespace SincroPelis
             byte[] recBuf = new byte[received];
             Array.Copy(_buffer, recBuf, received);
             string text = Encoding.ASCII.GetString(recBuf);
-                                    Logger.Debug($"Received from client: {text}");
+            Logger.Debug($"Received from client: {text}");
 
 
             Send2All(text, current);

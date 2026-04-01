@@ -32,7 +32,7 @@ namespace SincroPelis
             }
             catch (Exception ex)
             {
-                                                Logger.Error($"Connection error: {ex.Message}", ex);
+                Logger.Error($"Connection error: {ex.Message}", ex);
             }
         }
 
@@ -45,7 +45,7 @@ namespace SincroPelis
             }
             catch (SocketException ex)
             {
-                                                Logger.Error($"Failed to send message: {ex.Message}", ex);
+                Logger.Error($"Failed to send message: {ex.Message}", ex);
                 return;
             }
         }
@@ -60,7 +60,7 @@ namespace SincroPelis
             }
             catch (SocketException ex)
             {
-                                                Logger.Error($"Connection lost with server: {ex.Message}", ex);
+                Logger.Error($"Connection lost with server: {ex.Message}", ex);
                 socketClient.Close();
 
                 return;
@@ -69,7 +69,7 @@ namespace SincroPelis
             byte[] recBuf = new byte[received];
             Array.Copy(_buffer, recBuf, received);
             string text = Encoding.ASCII.GetString(recBuf);
-                                    Logger.Debug($"Received message: {text}");
+            Logger.Debug($"Received message: {text}");
 
             OnMessageReceived?.Invoke(text);
 
