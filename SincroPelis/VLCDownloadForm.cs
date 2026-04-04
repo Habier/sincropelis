@@ -73,10 +73,10 @@ namespace SincroPelis
                 labelStatus.Text = msg;
                 if (msg.Contains("%"))
                 {
-                    var parts = msg.Split('(');
-                    if (parts.Length > 1 && parts[1].Contains("%"))
+                    var lastSpace = msg.LastIndexOf(' ');
+                    if (lastSpace >= 0)
                     {
-                        var percentStr = parts[1].Split('%')[0];
+                        var percentStr = msg.Substring(lastSpace + 1).Replace("%", "");
                         if (int.TryParse(percentStr, out int percent))
                             progressBar.Value = Math.Min(100, percent);
                     }
