@@ -109,8 +109,30 @@ namespace SincroPelis
                 using var client = new HttpClient();
                 client.Timeout = TimeSpan.FromMinutes(10);
 
-                var bytes = await client.GetByteArrayAsync(downloadUrl);
-                await File.WriteAllBytesAsync(tempZip, bytes);
+                using var response = await client.GetAsync(downloadUrl, HttpCompletionOption.ResponseHeadersRead);
+                response.EnsureSuccessStatusCode();
+
+                var totalBytes = response.Content.Headers.ContentLength ?? -1L;
+                var downloadedBytes = 0L;
+
+                await using (var contentStream = await response.Content.ReadAsStreamAsync())
+                {
+                    await using var fileStream = new FileStream(tempZip, FileMode.Create, FileAccess.Write, FileShare.None, 8192);
+
+                    var buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = await contentStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    {
+                        await fileStream.WriteAsync(buffer, 0, bytesRead);
+                        downloadedBytes += bytesRead;
+
+                        if (totalBytes > 0)
+                        {
+                            var percent = (double)downloadedBytes / totalBytes * 100;
+                            progress?.Report($"Descargando VLC... {percent:F0}%");
+                        }
+                    }
+                }
 
                 progress?.Report("Extrayendo VLC...");
 
