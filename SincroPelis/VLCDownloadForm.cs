@@ -7,10 +7,10 @@ namespace SincroPelis
 {
     public class VLCDownloadForm : Form
     {
-        private Label labelTitle;
-        private Label labelStatus;
-        private ProgressBar progressBar;
-        private Button buttonCancel;
+        private Label labelTitle = null!;
+        private Label labelStatus = null!;
+        private ProgressBar progressBar = null!;
+        private Button buttonCancel = null!;
         private bool _downloadCompleted = false;
 
         public VLCDownloadForm()
@@ -66,7 +66,7 @@ namespace SincroPelis
             this.Controls.Add(buttonCancel);
         }
 
-        private async void VLCDownloadForm_Load(object sender, EventArgs e)
+        private async void VLCDownloadForm_Load(object? sender, EventArgs e)
         {
             var progress = new Progress<string>(msg =>
             {
@@ -107,7 +107,7 @@ namespace SincroPelis
             }
         }
 
-        private void ButtonCancel_Click(object sender, EventArgs e)
+        private void ButtonCancel_Click(object? sender, EventArgs e)
         {
             this.DialogResult = DialogResult.Cancel;
             this.Close();
