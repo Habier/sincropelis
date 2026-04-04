@@ -8,8 +8,7 @@ namespace SincroPelis
     public static class Logger
     {
         private static readonly string LogPath = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "SincroPelis",
+            AppDomain.CurrentDomain.BaseDirectory,
             "logs",
             "app.log");
 
