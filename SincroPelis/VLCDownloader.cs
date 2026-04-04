@@ -27,8 +27,12 @@ namespace SincroPelis
         public static bool IsVLCAvailable()
         {
             string libPath = GetVLCLibPath();
-            if (Directory.Exists(libPath) && Directory.GetFiles(libPath, "*.dll").Length > 0)
-                return true;
+            if (Directory.Exists(libPath))
+            {
+                string libvlcDll = Path.Combine(libPath, "libvlc.dll");
+                if (File.Exists(libvlcDll))
+                    return true;
+            }
 
             foreach (var vlcPath in SystemVLCLocations)
             {
@@ -113,25 +117,55 @@ namespace SincroPelis
                 if (Directory.Exists(vlcLibPath))
                     Directory.Delete(vlcLibPath, true);
 
+                Directory.CreateDirectory(vlcLibPath);
+
                 ZipFile.ExtractToDirectory(tempZip, tempDir, true);
 
-                var vlcFolder = Path.Combine(tempDir, $"vlc-{vlcVersion}-win64");
-                if (Directory.Exists(vlcFolder))
+                var dirs = Directory.GetDirectories(tempDir);
+                Logger.Debug($"Directories in temp: {dirs.Length}");
+                foreach (var d in dirs)
+                {
+                    Logger.Debug($"  Dir: {Path.GetFileName(d)}");
+                }
+
+                string? vlcFolder = null;
+                foreach (var d in dirs)
+                {
+                    var name = Path.GetFileName(d);
+                    if (name.StartsWith("vlc-"))
+                    {
+                        vlcFolder = d;
+                        break;
+                    }
+                }
+
+                if (vlcFolder == null)
+                {
+                    var files = Directory.GetFiles(tempDir);
+                    Logger.Debug($"Files in temp: {files.Length}");
+                    foreach (var f in files.Take(10))
+                    {
+                        Logger.Debug($"  File: {Path.GetFileName(f)}");
+                    }
+                }
+
+                if (vlcFolder != null)
                 {
                     foreach (var file in Directory.GetFiles(vlcFolder))
                     {
-                        var destFile = Path.Combine(appDir, Path.GetFileName(file));
-                        if (File.Exists(destFile)) File.Delete(destFile);
+                        var destFile = Path.Combine(vlcLibPath, Path.GetFileName(file));
                         File.Move(file, destFile);
                     }
 
                     foreach (var dir in Directory.GetDirectories(vlcFolder))
                     {
-                        var destDir = Path.Combine(appDir, Path.GetFileName(dir));
-                        if (Directory.Exists(destDir)) Directory.Delete(destDir, true);
+                        var destDir = Path.Combine(vlcLibPath, Path.GetFileName(dir));
                         Directory.Move(dir, destDir);
                     }
                 }
+
+                var libvlcDll = Path.Combine(vlcLibPath, "libvlc.dll");
+                Logger.Debug($"libvlc.dll exists: {File.Exists(libvlcDll)}");
 
                 progress?.Report("VLC instalado correctamente.");
                 return true;

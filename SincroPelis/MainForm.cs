@@ -49,6 +49,8 @@ namespace SincroPelis
             InitializeComponent();
 
             string? systemVLCLibPath = VLCDownloader.GetSystemVLCLibPath();
+            string? vlcDownloadedPath = null;
+
             if (!string.IsNullOrEmpty(systemVLCLibPath))
             {
                 Environment.SetEnvironmentVariable("LIBVLC_PATH", systemVLCLibPath);
@@ -72,6 +74,7 @@ namespace SincroPelis
                         Application.Exit();
                         return;
                     }
+                    vlcDownloadedPath = VLCDownloader.GetVLCLibPath();
                 }
                 else
                 {
@@ -86,6 +89,10 @@ namespace SincroPelis
                 if (!string.IsNullOrEmpty(systemVLCLibPath))
                 {
                     LibVLCSharp.Shared.Core.Initialize(systemVLCLibPath);
+                }
+                else if (!string.IsNullOrEmpty(vlcDownloadedPath))
+                {
+                    LibVLCSharp.Shared.Core.Initialize(vlcDownloadedPath);
                 }
                 else
                 {
