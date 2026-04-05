@@ -53,10 +53,6 @@ dotnet publish SincroPelis/SincroPelis.csproj -c Release
 powershell -ExecutionPolicy Bypass -File build-release.ps1
 ```
 
-Esto genera:
-- `release/SincroPelis-v1.0/` - Carpeta con ejecutable
-- `release/SincroPelis-v1.0.zip` - Archivo para distribuir (~167 MB)
-
 ## Licencia
 
 MIT
