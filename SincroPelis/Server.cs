@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace SincroPelis
 {
-    class Server
+    public class Server
     {
         private Socket _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -17,13 +17,20 @@ namespace SincroPelis
         public static int PORT = 9000;
 
         private byte[] _buffer = new byte[_BUFFER_SIZE];
+        private bool started = false;
+
+        public int ConnectedClients => socketList.Count;
 
         public void start()
         {
-            Console.WriteLine("Servidor Socket ON");
-            _serverSocket.Bind(new IPEndPoint(IPAddress.Any, PORT));
-            _serverSocket.Listen(5);
-            _serverSocket.BeginAccept(AcceptCallback, null);
+            if (!started)
+            {
+                Logger.Info($"Server started on port {PORT}");
+                _serverSocket.Bind(new IPEndPoint(IPAddress.Any, PORT));
+                _serverSocket.Listen(5);
+                _serverSocket.BeginAccept(AcceptCallback, null);
+                started = true;
+            }
         }
 
         public void startAndConnect()
@@ -31,15 +38,25 @@ namespace SincroPelis
             Program.server.start();
             Program.client.TryConnect("127.0.0.1");
         }
-        
-        private void Send2All()
+
+        private void Send2All(string message, Socket? excludeSocket = null)
         {
             foreach (Socket socket in socketList)
             {
-                byte[] data = Encoding.ASCII.GetBytes("Pausen");
-                socket.Send(data);
+                if (socket != excludeSocket)
+                {
+                    try
+                    {
+                        byte[] data = Encoding.ASCII.GetBytes(message);
+                        socket.Send(data);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error($"Failed to send to client: {ex.Message}", ex);
+                    }
+                }
             }
-            Console.WriteLine("Pause sent to all");
+            Logger.Debug($"Broadcasting: {message}");
         }
 
         private void CloseAll()
@@ -74,7 +91,7 @@ namespace SincroPelis
 
             socketList.Add(socket);
             socket.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socket);
-            KeyController.logThis("New Client: " + socket.RemoteEndPoint.ToString());
+            Logger.Info($"New client connected: {socket.RemoteEndPoint}");
             _serverSocket.BeginAccept(AcceptCallback, null);
         }
 
@@ -85,35 +102,28 @@ namespace SincroPelis
         /// <param name="asyncronousResult"></param>
         private void ReceiveCallback(IAsyncResult asyncronousResult)
         {
-            Socket current = (Socket)asyncronousResult.AsyncState;
+            Socket? current = (Socket?)asyncronousResult.AsyncState;
             int received;
 
             try
             {
-                received = current.EndReceive(asyncronousResult);
+                received = current!.EndReceive(asyncronousResult);
             }
-            catch (SocketException) // Connection broken/error
+            catch (SocketException ex) // Connection broken/error
             {
-                KeyController.logThis("Conexión perdida: " + current.RemoteEndPoint.ToString());
-                current.Close();
-                socketList.Remove(current);
+                Logger.Error($"Connection lost: {current?.RemoteEndPoint}", ex);
+                current?.Close();
+                if (current != null) socketList.Remove(current);
                 return;
             }
 
             byte[] recBuf = new byte[received];
             Array.Copy(_buffer, recBuf, received);
             string text = Encoding.ASCII.GetString(recBuf);
-            Console.WriteLine("Texto recebido: " + text);
+            Logger.Debug($"Received from client: {text}");
 
 
-            if (text == "pause")
-            {
-                Send2All(); // pause requested
-            }
-            else
-            {
-                //get name
-            }
+            Send2All(text, current);
 
             current.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, current);
         }

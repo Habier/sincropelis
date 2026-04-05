@@ -1,1 +1,84 @@
 # SincroPelis
+
+Sincroniza la reproducción de video con tus amigos. Un reproductor de video multiplayer para ver pelis y series juntos a distancia.
+
+## Características
+
+- Reproducción de video local (MP4, MKV, AVI, etc.)
+- Sincronización en tiempo real entre maestro y clientes
+- Controles: play/pause, seek ±5 segundos, volumen
+- Subtítulos y audio múltiple
+- Modo pantalla completa
+- Atajos de teclado:
+  - `Espacio` - Play/Pause
+  - `Flecha izquierda/derecha` - Retroceder/Avanzar 5 segundos
+  - `Flecha arriba/abajo` - Subir/Bajar volumen
+  - `ESC` - Salir de pantalla completa
+
+## Requisitos
+
+- Windows 10/11 (x64)
+- No requiere instalación de LibVLC (incluido)
+
+## Cómo Usar
+
+### Modo Maestro (servidor)
+1. Ejecuta `SincroPelis.exe`
+2. Selecciona un archivo de video
+3. Desmarca "Maestro" (o márcalo si quieres ser maestro)
+4. Haz click en "Iniciar"
+
+### Modo Cliente
+1. Ejecuta `SincroPelis.exe`
+2. Ingresa la IP del maestro
+3. Ingresa el puerto (default: 9000)
+4. Click en "Conectar"
+
+La reproducción se sincronizará automáticamente.
+
+## Desarrollo
+
+### Requisitos
+- .NET 10 SDK
+- Windows
+
+### Build
+
+```bash
+# Build de desarrollo
+dotnet build SincroPelis/SincroPelis.csproj
+
+# Build de release (genera .exe)
+dotnet publish SincroPelis/SincroPelis.csproj -c Release
+```
+
+### Build con reducción de plugins y ZIP
+
+```powershell
+powershell -ExecutionPolicy Bypass -File build-release.ps1
+```
+
+Esto genera:
+- `release/SincroPelis-v1.0/` - Carpeta con ejecutable
+- `release/SincroPelis-v1.0.zip` - Archivo para distribuir (~167 MB)
+
+### Crear Release en GitHub
+
+```bash
+# Tag y push
+git tag v1.0
+git push origin v1.0
+```
+
+Luego crea un release en GitHub y arrastra el `.zip` generado.
+
+## Logs
+
+Los logs se guardan en:
+```
+%LOCALAPPDATA%\SincroPelis\logs\app.log
+```
+
+## Licencia
+
+MIT
