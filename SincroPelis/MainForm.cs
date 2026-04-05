@@ -119,6 +119,7 @@ namespace SincroPelis
                 // allow form to receive key events (for ESC to exit fullscreen)
                 try { this.KeyPreview = true; } catch { }
                 try { KeyController.OnShortcutPressed += OnShortcutPressed; } catch { }
+                try { this.FormClosing += Form1_FormClosing; } catch { }
                 // wire control events (designer event hookups were removed; subscribe at runtime)
                 try { playPauseButton.Click += PlayPauseButton_Click; } catch { }
                 try { backButton.Click += BackButton_Click; } catch { }
@@ -664,7 +665,7 @@ namespace SincroPelis
 
             try
             {
-                LoadFileToPlayer(path, false); // open and don't force pause
+                LoadFileToPlayer(path, true); // open paused
             }
             catch (Exception ex)
             {
@@ -679,11 +680,11 @@ namespace SincroPelis
                 try
                 {
                     using var media = new LibVLCSharp.Shared.Media(_libVLC, path, LibVLCSharp.Shared.FromType.FromPath);
-                    _mediaPlayer.Play(media);
                     if (startPaused)
                     {
-                        try { _mediaPlayer.Pause(); } catch { }
+                        media.AddOption(":start-paused");
                     }
+                    _mediaPlayer.Play(media);
                     SendDebug(startPaused ? "Fichero cargado en LibVLC (pausado)." : "Reproduciendo en reproductor integrado (LibVLC).");
                     return;
                 }
