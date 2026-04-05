@@ -1,6 +1,6 @@
 # SincroPelis
 
-Reproduce ficheros de video sincronizado con tus amigos.
+Reproduce ficheros de vídeo sincronizados con tus amigos.
 
 ## Características
 
