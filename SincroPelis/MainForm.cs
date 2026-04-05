@@ -613,7 +613,7 @@ namespace SincroPelis
 
 
 
-        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        private void Form1_FormClosing(object? sender, FormClosingEventArgs e)
         {
             const string message = "¿Desea a ciencia cierta salir de esta aplicación?";
             const string caption = "¿Seguuuuro?";
