@@ -1,9 +1,13 @@
 using FluentAssertions;
 using System.Net;
 using System.Net.Sockets;
+using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace SincroPelis.Tests.Unit;
 
+[Collection("Sequential")]
 public class ClientTests : IDisposable
 {
     private int _originalPort;
