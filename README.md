@@ -1,6 +1,6 @@
 # SincroPelis
 
-Sincroniza la reproducción de video con tus amigos. Un reproductor de video multiplayer para ver pelis y series juntos a distancia.
+Reproduce ficheros de video sincronizado con tus amigos.
 
 ## Características
 
@@ -18,7 +18,6 @@ Sincroniza la reproducción de video con tus amigos. Un reproductor de video mul
 ## Requisitos
 
 - Windows 10/11 (x64)
-- No requiere instalación de LibVLC (incluido)
 
 ## Cómo Usar
 
@@ -37,10 +36,6 @@ Sincroniza la reproducción de video con tus amigos. Un reproductor de video mul
 La reproducción se sincronizará automáticamente.
 
 ## Desarrollo
-
-### Requisitos
-- .NET 10 SDK
-- Windows
 
 ### Build
 
@@ -61,23 +56,6 @@ powershell -ExecutionPolicy Bypass -File build-release.ps1
 Esto genera:
 - `release/SincroPelis-v1.0/` - Carpeta con ejecutable
 - `release/SincroPelis-v1.0.zip` - Archivo para distribuir (~167 MB)
-
-### Crear Release en GitHub
-
-```bash
-# Tag y push
-git tag v1.0
-git push origin v1.0
-```
-
-Luego crea un release en GitHub y arrastra el `.zip` generado.
-
-## Logs
-
-Los logs se guardan en:
-```
-%LOCALAPPDATA%\SincroPelis\logs\app.log
-```
 
 ## Licencia
 
