@@ -314,6 +314,7 @@
             Margin = new Padding(4, 3, 4, 3);
             Name = "MainForm";
             Text = "Pinículas Sincronizadas";
+            Load += MainForm_Load;
             ((System.ComponentModel.ISupportInitialize)videoView).EndInit();
             panelControls.ResumeLayout(false);
             panelControls.PerformLayout();

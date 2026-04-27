@@ -33,16 +33,16 @@ namespace SincroPelis
         // Enable/disable playback-related controls safely
         private void SetControlsEnabled(bool enabled)
         {
-                SafeInvoke(() =>
-                {
-                    playPauseButton.Enabled = enabled;
-                    backButton.Enabled = enabled;
-                    forwardButton.Enabled = enabled;
-                    trackBarPosition.Enabled = enabled;
-                    trackBarVolume.Enabled = enabled;
-                    comboAudio.Enabled = enabled;
-                    comboSub.Enabled = enabled;
-                });
+            SafeInvoke(() =>
+            {
+                playPauseButton.Enabled = enabled;
+                backButton.Enabled = enabled;
+                forwardButton.Enabled = enabled;
+                trackBarPosition.Enabled = enabled;
+                trackBarVolume.Enabled = enabled;
+                comboAudio.Enabled = enabled;
+                comboSub.Enabled = enabled;
+            });
         }
         public MainForm()
         {
@@ -158,7 +158,7 @@ namespace SincroPelis
             }
             catch (Exception ex)
             {
-                                Logger.Error($"LibVLC initialization failed: {ex.Message}", ex);
+                Logger.Error($"LibVLC initialization failed: {ex.Message}", ex);
                 SendDebug($"Error al inicializar LibVLC: {ex.Message}");
             }
         }
@@ -202,7 +202,7 @@ namespace SincroPelis
             }
             catch (Exception ex)
             {
-                                Logger.Error("Error in PlayPauseButton_Click handler", ex);
+                Logger.Error("Error in PlayPauseButton_Click handler", ex);
             }
         }
 
@@ -448,7 +448,7 @@ namespace SincroPelis
             labelDebug.Invoke(new Action(() => labelDebug.Text = text));
         }
 
-        
+
 
         private void fullscreenButton_Click(object sender, EventArgs e)
         {
@@ -811,6 +811,11 @@ namespace SincroPelis
             {
                 Logger.Error("Error in comboSub_SelectedIndexChanged handler", ex);
             }
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

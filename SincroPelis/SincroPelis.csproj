@@ -8,7 +8,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <SelfContained>false</SelfContained>
     <PublishSingleFile>false</PublishSingleFile>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="icon.ico" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="LibVLCSharp.WinForms" Version="3.9.6" />
     <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
