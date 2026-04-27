@@ -28,6 +28,8 @@ namespace SincroPelis
         private System.Windows.Forms.Timer? _uiTimer;
         // Flag set while the user is interacting with the position trackbar to avoid UI glitches.
         private volatile bool _isSeeking = false;
+        // Guard against LibVLC callbacks/timers touching disposed native objects while closing.
+        private volatile bool _isClosing = false;
         // When true, the next LibVLC state event (Playing/Paused) will not emit a client message
         private volatile bool _suppressClientEvent = false;
         // Enable/disable playback-related controls safely
@@ -243,10 +245,10 @@ namespace SincroPelis
         {
             try
             {
-                if (_mediaPlayer != null)
+                if (TryGetActiveMediaPlayer(out var mediaPlayer))
                 {
-                    var newTime = Math.Min(_mediaPlayer.Length, _mediaPlayer.Time + 5000);
-                    _mediaPlayer.Time = (long)newTime;
+                    var newTime = Math.Min(mediaPlayer.Length, mediaPlayer.Time + 5000);
+                    mediaPlayer.Time = (long)newTime;
                     Program.client.TrySend("seekby:5");
                 }
             }
@@ -257,11 +259,11 @@ namespace SincroPelis
         {
             try
             {
-                if (_mediaPlayer != null && _mediaPlayer.Length > 0)
+                if (TryGetActiveMediaPlayer(out var mediaPlayer) && mediaPlayer.Length > 0)
                 {
                     // user requested seek
                     var pos = trackBarPosition.Value / (double)trackBarPosition.Maximum;
-                    _mediaPlayer.Position = (float)pos;
+                    mediaPlayer.Position = (float)pos;
                     Program.client.TrySend($"seek:{pos}");
                 }
             }
@@ -294,23 +296,23 @@ namespace SincroPelis
         {
             try
             {
-                if (_mediaPlayer != null && _mediaPlayer.Length > 0 && !_isSeeking)
+                if (TryGetActiveMediaPlayer(out var mediaPlayer) && mediaPlayer.Length > 0 && !_isSeeking)
                 {
-                    var position = _mediaPlayer.Position; // 0..1
+                    var position = mediaPlayer.Position; // 0..1
+                    var current = TimeSpan.FromMilliseconds(mediaPlayer.Time);
+                    var total = TimeSpan.FromMilliseconds(mediaPlayer.Length);
                     SafeInvoke(() =>
                     {
                         trackBarPosition.Value = Math.Min(trackBarPosition.Maximum, (int)(position * trackBarPosition.Maximum));
-                        var current = TimeSpan.FromMilliseconds(_mediaPlayer.Time);
-                        var total = TimeSpan.FromMilliseconds(_mediaPlayer.Length);
                         labelTime.Text = string.Format("{0:mm\\:ss}/{1:mm\\:ss}", current, total);
                     });
                 }
                 // keep _isFullscreen in sync with LibVLC native fullscreen state
                 try
                 {
-                    if (_mediaPlayer != null)
+                    if (TryGetActiveMediaPlayer(out mediaPlayer))
                     {
-                        var libFull = _mediaPlayer.Fullscreen;
+                        var libFull = mediaPlayer.Fullscreen;
                         if (libFull != _isFullscreen)
                         {
                             _isFullscreen = libFull;
@@ -369,10 +371,32 @@ namespace SincroPelis
         // Helper to perform safe UI updates from libVLC threads
         private void SafeInvoke(Action action)
         {
+            if (_isClosing || IsDisposed || !IsHandleCreated)
+                return;
+
             if (InvokeRequired)
                 BeginInvoke(action);
             else
                 action();
+        }
+
+        private bool TryGetActiveMediaPlayer(out MediaPlayer mediaPlayer)
+        {
+            mediaPlayer = null!;
+
+            if (_isClosing || IsDisposed)
+            {
+                return false;
+            }
+
+            var current = _mediaPlayer;
+            if (current == null)
+            {
+                return false;
+            }
+
+            mediaPlayer = current;
+            return true;
         }
 
         // Load audio tracks into combo box AFTER media is loaded
@@ -518,19 +542,19 @@ namespace SincroPelis
                     var posStr = message.Substring(5);
                     if (double.TryParse(posStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double pos))
                     {
-                        if (_mediaPlayer != null && _mediaPlayer.Length > 0)
+                        if (TryGetActiveMediaPlayer(out var mediaPlayer) && mediaPlayer.Length > 0)
                         {
-                            _mediaPlayer.Position = (float)pos;
+                            mediaPlayer.Position = (float)pos;
                         }
                     }
                 }
                 else if (message.StartsWith("seekby:"))
                 {
                     var secStr = message.Substring(7);
-                    if (int.TryParse(secStr, out int sec) && _mediaPlayer != null)
+                    if (int.TryParse(secStr, out int sec) && TryGetActiveMediaPlayer(out var mediaPlayer))
                     {
-                        var newTime = Math.Max(0, Math.Min(_mediaPlayer.Length, _mediaPlayer.Time + sec * 1000));
-                        _mediaPlayer.Time = newTime;
+                        var newTime = Math.Max(0, Math.Min(mediaPlayer.Length, mediaPlayer.Time + sec * 1000));
+                        mediaPlayer.Time = newTime;
                     }
                 }
 
@@ -699,12 +723,52 @@ namespace SincroPelis
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
+            _isClosing = true;
             base.OnFormClosing(e);
+
             try
             {
-                _mediaPlayer?.Stop();
-                _mediaPlayer?.Dispose();
-                _libVLC?.Dispose();
+                _uiTimer?.Stop();
+                _uiTimer?.Dispose();
+                _uiTimer = null;
+            }
+            catch { }
+
+            try
+            {
+                if (_fsForm != null && !_fsForm.IsDisposed)
+                {
+                    _fsForm.Close();
+                }
+            }
+            catch { }
+
+            try
+            {
+                videoView.MediaPlayer = null;
+            }
+            catch { }
+
+            var mediaPlayer = _mediaPlayer;
+            var libVlc = _libVLC;
+            _mediaPlayer = null;
+            _libVLC = null;
+
+            try
+            {
+                mediaPlayer?.Stop();
+            }
+            catch { }
+
+            try
+            {
+                mediaPlayer?.Dispose();
+            }
+            catch { }
+
+            try
+            {
+                libVlc?.Dispose();
             }
             catch { }
         }
