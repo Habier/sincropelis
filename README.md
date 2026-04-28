@@ -2,6 +2,10 @@
 
 Reproduce ficheros de vídeo sincronizados con tus amigos.
 
+## Descarga
+
+[Descargar la última versión](https://github.com/Habier/sincropelis/releases/latest)
+
 ## Características
 
 - Reproducción de video local (MP4, MKV, AVI, etc.)
@@ -46,12 +50,6 @@ dotnet build SincroPelis/SincroPelis.csproj
 
 # Build de release (genera .exe)
 dotnet publish SincroPelis/SincroPelis.csproj -c Release
-```
-
-### Build con reducción de plugins y ZIP
-
-```powershell
-powershell -ExecutionPolicy Bypass -File build-release.ps1
 ```
 
 ## Licencia
