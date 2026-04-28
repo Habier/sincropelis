@@ -26,6 +26,7 @@ Reproduce ficheros de vídeo sincronizados con tus amigos.
 2. Selecciona un archivo de video
 3. Desmarca "Maestro" (o márcalo si quieres ser maestro)
 4. Haz click en "Iniciar"
+5. Asegúrate de tener abierto el puerto TCP configurado (por defecto, `9000`) en el firewall/router para que otros puedan conectarse.
 
 ### Modo Cliente
 1. Ejecuta `SincroPelis.exe`

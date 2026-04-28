@@ -1,9 +1,20 @@
 param(
     [string]$Configuration = "Release",
-    [string]$OutputDir = ".\dist"
+    [string]$OutputDir = ".\dist",
+    [string]$Version
 )
 
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($Version)) {
+    $Version = Read-Host "Que version quieres usar (ej. 1.2.0)"
+}
+
+if ([string]::IsNullOrWhiteSpace($Version)) {
+    throw "La version no puede estar vacia."
+}
+
+$versionLabel = "v$Version"
 
 Write-Host "Building SincroPelis..." -ForegroundColor Cyan
 
@@ -11,7 +22,7 @@ $projectPath = ".\SincroPelis\SincroPelis.csproj"
 
 dotnet publish $projectPath -c $Configuration -o "$OutputDir\publish-full"
 
-$releaseDir = "$OutputDir\SincroPelis-v1.0"
+$releaseDir = "$OutputDir\SincroPelis-$versionLabel"
 if (Test-Path $releaseDir) {
     Remove-Item $releaseDir -Recurse -Force
 }
@@ -27,7 +38,7 @@ if (Test-Path "$releaseDir\libvlc") {
 
 Write-Host "Creating ZIP..." -ForegroundColor Cyan
 
-$zipPath = "$OutputDir\SincroPelis-v1.0.zip"
+$zipPath = "$OutputDir\SincroPelis-$versionLabel.zip"
 if (Test-Path $zipPath) {
     Remove-Item $zipPath -Force
 }
