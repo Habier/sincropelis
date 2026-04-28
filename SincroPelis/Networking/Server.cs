@@ -14,29 +14,28 @@ namespace SincroPelis
 
         private List<Socket> socketList = new List<Socket>();
         private const int _BUFFER_SIZE = 2048;
-        public static int PORT = 9000;
+        public int Port { get; set; }
 
         private byte[] _buffer = new byte[_BUFFER_SIZE];
         private bool started = false;
 
         public int ConnectedClients => socketList.Count;
 
+        public Server(int port = 9000)
+        {
+            Port = port;
+        }
+
         public void start()
         {
             if (!started)
             {
-                Logger.Info($"Server started on port {PORT}");
-                _serverSocket.Bind(new IPEndPoint(IPAddress.Any, PORT));
+                Logger.Info($"Server started on port {Port}");
+                _serverSocket.Bind(new IPEndPoint(IPAddress.Any, Port));
                 _serverSocket.Listen(5);
                 _serverSocket.BeginAccept(AcceptCallback, null);
                 started = true;
             }
-        }
-
-        public void startAndConnect()
-        {
-            Program.server.start();
-            Program.client.TryConnect("127.0.0.1");
         }
 
         private void Send2All(string message, Socket? excludeSocket = null)

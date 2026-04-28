@@ -10,16 +10,18 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using SincroPelis.Properties;
 using LibVLCSharp.Shared;
+using SincroPelis.Playback;
+using SincroPelis.Properties;
 
 namespace SincroPelis
 {
     public partial class MainForm : Form
     {
+        private readonly Client _client;
+        private readonly Server _server;
+        private readonly PlaybackService _playbackService;
         private bool _isFullscreen = false;
-        private LibVLC? _libVLC;
-        private MediaPlayer? _mediaPlayer;
 #pragma warning disable CS0169, CS0414
         private System.Windows.Forms.Timer? _timerWmpPoll;
         private int _lastWmpState = -1;
@@ -30,8 +32,6 @@ namespace SincroPelis
         private volatile bool _isSeeking = false;
         // Guard against LibVLC callbacks/timers touching disposed native objects while closing.
         private volatile bool _isClosing = false;
-        // When true, the next LibVLC state event (Playing/Paused) will not emit a client message
-        private volatile bool _suppressClientEvent = false;
         // Enable/disable playback-related controls safely
         private void SetControlsEnabled(bool enabled)
         {
@@ -46,8 +46,12 @@ namespace SincroPelis
                 comboSub.Enabled = enabled;
             });
         }
-        public MainForm()
+        public MainForm(Client client, Server server)
         {
+            _client = client;
+            _server = server;
+            _playbackService = new PlaybackService();
+
             InitializeComponent();
 
             string? systemVLCLibPath = VLCDownloader.GetSystemVLCLibPath();
@@ -88,29 +92,9 @@ namespace SincroPelis
 
             try
             {
-                if (!string.IsNullOrEmpty(systemVLCLibPath))
-                {
-                    LibVLCSharp.Shared.Core.Initialize(systemVLCLibPath);
-                }
-                else if (!string.IsNullOrEmpty(vlcDownloadedPath))
-                {
-                    LibVLCSharp.Shared.Core.Initialize(vlcDownloadedPath);
-                }
-                else
-                {
-                    LibVLCSharp.Shared.Core.Initialize();
-                }
-                try
-                {
-                    _libVLC = new LibVLC(new string[] { "--vout=direct3d11", "--no-video-title-show" });
-                }
-                catch
-                {
-                    _libVLC = new LibVLC();
-                }
-                _mediaPlayer = new MediaPlayer(_libVLC);
+                _playbackService.Initialize(systemVLCLibPath, vlcDownloadedPath);
                 try { videoView.CreateControl(); } catch { }
-                videoView.MediaPlayer = _mediaPlayer;
+                videoView.MediaPlayer = _playbackService.MediaPlayer;
                 videoView.Visible = true;
                 webBrowserPlayer.Visible = false;
                 // start with controls disabled until media is ready
@@ -135,7 +119,7 @@ namespace SincroPelis
                 // other UI events (were previously wired in designer)
                 try { fullscreenButton.Click += (s, e) => fullscreenButton_Click(this, e); } catch { }
                 try { buttonConnect.Click += (s, e) => buttonConnect_Click(this, e); } catch { }
-                try { Program.client.OnMessageReceived += OnSocketMessageReceived; } catch { }
+                try { _client.OnMessageReceived += OnSocketMessageReceived; } catch { }
                 try { textHost.TextChanged += (s, e) => textHost_TextChanged(this, e); } catch { }
 
                 try { checkBoxMaestro.CheckedChanged += (s, e) => checkBoxMaestro_CheckedChanged(this, e); } catch { }
@@ -156,7 +140,7 @@ namespace SincroPelis
                 }
                 catch { }
                 // initialize volume control from player
-                try { if (_mediaPlayer != null) trackBarVolume.Value = _mediaPlayer.Volume; } catch { }
+                try { trackBarVolume.Value = _playbackService.GetVolume(); } catch { }
             }
             catch (Exception ex)
             {
@@ -182,23 +166,17 @@ namespace SincroPelis
         {
             try
             {
-                if (_mediaPlayer != null)
+                if (_playbackService.TryGetActiveMediaPlayer(out _))
                 {
-                    if (_mediaPlayer.IsPlaying)
+                    if (_playbackService.TogglePlayPause())
                     {
-                        // suppress the upcoming Paused event from emitting another client message
-                        _suppressClientEvent = true;
-                        _mediaPlayer.Pause();
-                        SafeInvoke(() => playPauseButton.Text = "Play");
-                        Program.client.TrySend("pause");
+                        SafeInvoke(() => playPauseButton.Text = "Pause");
+                        _client.TrySend("play");
                     }
                     else
                     {
-                        // suppress the upcoming Playing event from emitting another client message
-                        _suppressClientEvent = true;
-                        _mediaPlayer.Play();
-                        SafeInvoke(() => playPauseButton.Text = "Pause");
-                        Program.client.TrySend("play");
+                        SafeInvoke(() => playPauseButton.Text = "Play");
+                        _client.TrySend("pause");
                     }
                 }
             }
@@ -212,14 +190,14 @@ namespace SincroPelis
         {
             try
             {
-                _mediaPlayer?.Stop();
+                _playbackService.Stop();
                 SafeInvoke(() =>
                 {
                     playPauseButton.Text = "Play";
                     trackBarPosition.Value = 0;
                     labelTime.Text = "00:00/00:00";
                 });
-                Program.client.TrySend("stop");
+                _client.TrySend("stop");
             }
             catch (Exception ex)
             {
@@ -231,11 +209,10 @@ namespace SincroPelis
         {
             try
             {
-                if (_mediaPlayer != null)
+                if (_playbackService.TryGetActiveMediaPlayer(out _))
                 {
-                    var newTime = Math.Max(0, _mediaPlayer.Time - 5000);
-                    _mediaPlayer.Time = (long)newTime;
-                    Program.client.TrySend("seekby:-5");
+                    _playbackService.SeekBySeconds(-5);
+                    _client.TrySend("seekby:-5");
                 }
             }
             catch { }
@@ -247,9 +224,8 @@ namespace SincroPelis
             {
                 if (TryGetActiveMediaPlayer(out var mediaPlayer))
                 {
-                    var newTime = Math.Min(mediaPlayer.Length, mediaPlayer.Time + 5000);
-                    mediaPlayer.Time = (long)newTime;
-                    Program.client.TrySend("seekby:5");
+                    _playbackService.SeekBySeconds(5);
+                    _client.TrySend("seekby:5");
                 }
             }
             catch { }
@@ -263,8 +239,8 @@ namespace SincroPelis
                 {
                     // user requested seek
                     var pos = trackBarPosition.Value / (double)trackBarPosition.Maximum;
-                    mediaPlayer.Position = (float)pos;
-                    Program.client.TrySend($"seek:{pos}");
+                    _playbackService.SeekToPosition(pos);
+                    _client.TrySend($"seek:{pos}");
                 }
             }
             catch { }
@@ -284,10 +260,7 @@ namespace SincroPelis
         {
             try
             {
-                if (_mediaPlayer != null)
-                {
-                    _mediaPlayer.Volume = trackBarVolume.Value;
-                }
+                _playbackService.SetVolume(trackBarVolume.Value);
             }
             catch { }
         }
@@ -324,7 +297,7 @@ namespace SincroPelis
                 // update connected users count if in server mode
                 if (checkBoxMaestro.Checked)
                 {
-                    SafeInvoke(() => labelConnectedUsers.Text = $"Conectados: {Program.server.ConnectedClients}");
+                    SafeInvoke(() => labelConnectedUsers.Text = $"Conectados: {_server.ConnectedClients}");
                 }
             }
             catch { }
@@ -350,17 +323,15 @@ namespace SincroPelis
                             ToggleFullscreen();
                         break;
                     case KeyController.Shortcut.VolumeUp:
-                        if (_mediaPlayer != null)
+                        if (_playbackService.TryGetActiveMediaPlayer(out _))
                         {
-                            _mediaPlayer.Volume = Math.Min(100, _mediaPlayer.Volume + 5);
-                            trackBarVolume.Value = _mediaPlayer.Volume;
+                            trackBarVolume.Value = _playbackService.AdjustVolume(5);
                         }
                         break;
                     case KeyController.Shortcut.VolumeDown:
-                        if (_mediaPlayer != null)
+                        if (_playbackService.TryGetActiveMediaPlayer(out _))
                         {
-                            _mediaPlayer.Volume = Math.Max(0, _mediaPlayer.Volume - 5);
-                            trackBarVolume.Value = _mediaPlayer.Volume;
+                            trackBarVolume.Value = _playbackService.AdjustVolume(-5);
                         }
                         break;
                 }
@@ -389,8 +360,7 @@ namespace SincroPelis
                 return false;
             }
 
-            var current = _mediaPlayer;
-            if (current == null)
+            if (!_playbackService.TryGetActiveMediaPlayer(out var current))
             {
                 return false;
             }
@@ -405,22 +375,18 @@ namespace SincroPelis
             try
             {
                 SafeInvoke(() => comboAudio.Items.Clear());
-                if (_mediaPlayer == null) return;
-                var desc = _mediaPlayer.AudioTrackDescription;
-                if (desc == null) return;
-                foreach (var d in desc)
+                var audioTracks = _playbackService.GetAudioTracks();
+                foreach (var track in audioTracks)
                 {
-                    var id = d.Id;
-                    var name = string.IsNullOrEmpty(d.Name) ? $"Track {id}" : d.Name;
-                    SafeInvoke(() => comboAudio.Items.Add(new ComboItem(name, id)));
+                    SafeInvoke(() => comboAudio.Items.Add(track));
                 }
-                // select current
-                var current = _mediaPlayer.AudioTrack;
+
+                var current = _playbackService.GetCurrentAudioTrack();
                 SafeInvoke(() =>
                 {
                     for (int i = 0; i < comboAudio.Items.Count; i++)
                     {
-                        if (comboAudio.Items[i] is ComboItem ci && ci.Id == current)
+                        if (comboAudio.Items[i] is TrackOption ci && ci.Id == current)
                         {
                             comboAudio.SelectedIndex = i;
                             break;
@@ -437,24 +403,18 @@ namespace SincroPelis
             try
             {
                 SafeInvoke(() => comboSub.Items.Clear());
-                if (_mediaPlayer == null) return;
-                // add None
-                SafeInvoke(() => comboSub.Items.Add(new ComboItem("None", -1)));
-                var desc = _mediaPlayer.SpuDescription;
-                if (desc == null) return;
-                foreach (var d in desc)
+                var subtitleTracks = _playbackService.GetSubtitleTracks();
+                foreach (var track in subtitleTracks)
                 {
-                    var id = d.Id;
-                    var name = string.IsNullOrEmpty(d.Name) ? $"Sub {id}" : d.Name;
-                    SafeInvoke(() => comboSub.Items.Add(new ComboItem(name, id)));
+                    SafeInvoke(() => comboSub.Items.Add(track));
                 }
-                // select current
-                var current = _mediaPlayer.Spu;
+
+                var current = _playbackService.GetCurrentSubtitleTrack();
                 SafeInvoke(() =>
                 {
                     for (int i = 0; i < comboSub.Items.Count; i++)
                     {
-                        if (comboSub.Items[i] is ComboItem ci && ci.Id == current)
+                        if (comboSub.Items[i] is TrackOption ci && ci.Id == current)
                         {
                             comboSub.SelectedIndex = i;
                             break;
@@ -516,90 +476,37 @@ namespace SincroPelis
         {
             try
             {
-                _suppressClientEvent = true;
+                var result = _playbackService.HandleIncomingCommand(message);
 
-                if (message == "pause")
+                if (result.PlayPauseText != null)
                 {
-                    _mediaPlayer?.Pause();
-                    SafeInvoke(() => playPauseButton.Text = "Pause");
-                }
-                else if (message == "play")
-                {
-                    _mediaPlayer?.Play();
-                    SafeInvoke(() => playPauseButton.Text = "Play");
-                }
-                else if (message == "stop")
-                {
-                    _mediaPlayer?.Stop();
-                    SafeInvoke(() => { playPauseButton.Text = "Play"; trackBarPosition.Value = 0; });
-                }
-                else if (message == "ended")
-                {
-                    SafeInvoke(() => { playPauseButton.Text = "Play"; trackBarPosition.Value = 0; });
-                }
-                else if (message.StartsWith("seek:"))
-                {
-                    var posStr = message.Substring(5);
-                    if (double.TryParse(posStr, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out double pos))
-                    {
-                        if (TryGetActiveMediaPlayer(out var mediaPlayer) && mediaPlayer.Length > 0)
-                        {
-                            mediaPlayer.Position = (float)pos;
-                        }
-                    }
-                }
-                else if (message.StartsWith("seekby:"))
-                {
-                    var secStr = message.Substring(7);
-                    if (int.TryParse(secStr, out int sec) && TryGetActiveMediaPlayer(out var mediaPlayer))
-                    {
-                        var newTime = Math.Max(0, Math.Min(mediaPlayer.Length, mediaPlayer.Time + sec * 1000));
-                        mediaPlayer.Time = newTime;
-                    }
+                    SafeInvoke(() => playPauseButton.Text = result.PlayPauseText);
                 }
 
-
-                else if (message.StartsWith("audio:"))
+                if (result.ResetPosition)
                 {
-                    var idStr = message.Substring(6);
-                    if (int.TryParse(idStr, out int id) && _mediaPlayer != null)
-                    {
-                        _mediaPlayer.SetAudioTrack(id);
-                    }
-                }
-                else if (message.StartsWith("sub:"))
-                {
-                    var idStr = message.Substring(4);
-                    if (int.TryParse(idStr, out int id) && _mediaPlayer != null)
-                    {
-                        _mediaPlayer.SetSpu(id);
-                    }
+                    SafeInvoke(() => trackBarPosition.Value = 0);
                 }
 
                 SendDebug("Socket: " + message);
             }
             catch { }
-            finally
-            {
-                _suppressClientEvent = false;
-            }
         }
 
         private void selfConnect()
         {
-            Program.server.start();
-            Program.client.TryConnect("127.0.0.1");
+            _server.start();
+            _client.TryConnect("127.0.0.1");
         }
 
         private void masterMode()
         {
-            Program.serverTask = new Task(selfConnect);
-            Program.serverTask.Start();
+            Task.Run(selfConnect);
         }
 
         private void clientMode()
         {
-            Program.client.TryConnect(textHost.Text);
+            _client.TryConnect(textHost.Text);
         }
 
         private void buttonConnect_Click(object sender, EventArgs e)
@@ -631,8 +538,8 @@ namespace SincroPelis
             Settings.Default.port = number;
             Settings.Default.Save();
 
-            Client.PORT = number;
-            Server.PORT = number;
+            _client.Port = number;
+            _server.Port = number;
         }
 
 
@@ -699,26 +606,7 @@ namespace SincroPelis
 
         private void LoadFileToPlayer(string path, bool startPaused)
         {
-            if (_mediaPlayer != null && _libVLC != null)
-            {
-                try
-                {
-                    using var media = new LibVLCSharp.Shared.Media(_libVLC, path, LibVLCSharp.Shared.FromType.FromPath);
-                    if (startPaused)
-                    {
-                        media.AddOption(":start-paused");
-                    }
-                    _mediaPlayer.Play(media);
-                    SendDebug(startPaused ? "Fichero cargado en LibVLC (pausado)." : "Reproduciendo en reproductor integrado (LibVLC).");
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    SendDebug("Error cargando en LibVLC: " + ex.Message);
-                }
-            }
-
-            SendDebug("No hay reproductor disponible: ");
+            _playbackService.LoadFile(path, startPaused, SendDebug);
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -749,28 +637,7 @@ namespace SincroPelis
             }
             catch { }
 
-            var mediaPlayer = _mediaPlayer;
-            var libVlc = _libVLC;
-            _mediaPlayer = null;
-            _libVLC = null;
-
-            try
-            {
-                mediaPlayer?.Stop();
-            }
-            catch { }
-
-            try
-            {
-                mediaPlayer?.Dispose();
-            }
-            catch { }
-
-            try
-            {
-                libVlc?.Dispose();
-            }
-            catch { }
+            _playbackService.Dispose();
         }
 
         private void textBoxFilePath_TextChanged(object sender, EventArgs e)
@@ -786,20 +653,17 @@ namespace SincroPelis
         // Map LibVLC events to client messages
         private void WireMediaPlayerEvents()
         {
-            if (_mediaPlayer == null) return;
-            _mediaPlayer.Playing += (_, _) =>
+            if (!_playbackService.TryGetActiveMediaPlayer(out var mediaPlayer)) return;
+            mediaPlayer.Playing += (_, _) =>
             {
                 try
                 {
-                    // If this playing event was triggered by a local action where we already sent the
-                    // client message, suppress sending again. Reset the flag either way.
-                    if (_suppressClientEvent)
+                    if (_playbackService.ConsumeSuppressedSyncEvent())
                     {
-                        _suppressClientEvent = false;
                     }
                     else
                     {
-                        Program.client.TrySend("play");
+                        _client.TrySend("play");
                     }
 
                     SendDebug("LibVLC: Playing");
@@ -808,17 +672,16 @@ namespace SincroPelis
                 catch { }
             };
 
-            _mediaPlayer.Paused += (_, _) =>
+            mediaPlayer.Paused += (_, _) =>
             {
                 try
                 {
-                    if (_suppressClientEvent)
+                    if (_playbackService.ConsumeSuppressedSyncEvent())
                     {
-                        _suppressClientEvent = false;
                     }
                     else
                     {
-                        Program.client.TrySend("pause");
+                        _client.TrySend("pause");
                     }
 
                     SendDebug("LibVLC: Paused");
@@ -827,21 +690,12 @@ namespace SincroPelis
                 catch { }
             };
 
-            _mediaPlayer.Stopped += (_, _) => { try { Program.client.TrySend("stop"); SendDebug("LibVLC: Stopped"); SafeInvoke(() => { playPauseButton.Text = "Play"; SetControlsEnabled(false); }); } catch { } };
-            _mediaPlayer.EndReached += (_, _) => { try { Program.client.TrySend("ended"); SendDebug("LibVLC: Ended"); SafeInvoke(() => { playPauseButton.Text = "Play"; trackBarPosition.Value = 0; SetControlsEnabled(false); }); } catch { } };
-            _mediaPlayer.LengthChanged += (_, _) => { try { SafeInvoke(() => UiTimer_Tick(null, EventArgs.Empty)); } catch { } };
+            mediaPlayer.Stopped += (_, _) => { try { _client.TrySend("stop"); SendDebug("LibVLC: Stopped"); SafeInvoke(() => { playPauseButton.Text = "Play"; SetControlsEnabled(false); }); } catch { } };
+            mediaPlayer.EndReached += (_, _) => { try { _client.TrySend("ended"); SendDebug("LibVLC: Ended"); SafeInvoke(() => { playPauseButton.Text = "Play"; trackBarPosition.Value = 0; SetControlsEnabled(false); }); } catch { } };
+            mediaPlayer.LengthChanged += (_, _) => { try { SafeInvoke(() => UiTimer_Tick(null, EventArgs.Empty)); } catch { } };
 
             // Ensure audio/subtitle lists are loaded when media becomes ready
-            _mediaPlayer.Playing += (_, _) => { try { LoadAudioTracks(); LoadSubtitleTracks(); } catch { } };
-        }
-
-        // Simple container to store combo display and ID
-        private class ComboItem
-        {
-            public string Name { get; }
-            public int Id { get; }
-            public ComboItem(string name, int id) { Name = name; Id = id; }
-            public override string ToString() => Name;
+            mediaPlayer.Playing += (_, _) => { try { LoadAudioTracks(); LoadSubtitleTracks(); } catch { } };
         }
 
         // Event handlers for audio/subtitle combo boxes (wired in designer)
@@ -849,11 +703,10 @@ namespace SincroPelis
         {
             try
             {
-                if (_mediaPlayer == null) return;
-                if (comboAudio.SelectedItem is ComboItem it)
+                if (comboAudio.SelectedItem is TrackOption it)
                 {
-                    _mediaPlayer.SetAudioTrack(it.Id);
-                    Program.client.TrySend($"audio:{it.Id}");
+                    _playbackService.SetAudioTrack(it.Id);
+                    _client.TrySend($"audio:{it.Id}");
                 }
             }
             catch { }
@@ -863,12 +716,10 @@ namespace SincroPelis
         {
             try
             {
-                if (_mediaPlayer == null) return;
-                if (comboSub.SelectedItem is ComboItem it)
+                if (comboSub.SelectedItem is TrackOption it)
                 {
-                    // id -1 disables
-                    _mediaPlayer.SetSpu(it.Id);
-                    Program.client.TrySend($"sub:{it.Id}");
+                    _playbackService.SetSubtitleTrack(it.Id);
+                    _client.TrySend($"sub:{it.Id}");
                 }
             }
             catch (Exception ex)

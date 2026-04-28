@@ -13,11 +13,16 @@ namespace SincroPelis
         Socket socketClient = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
         private const int _BUFFER_SIZE = 2048;
-        public static int PORT = 9000;
+        public int Port { get; set; }
 
         private byte[] _buffer = new byte[_BUFFER_SIZE];
 
         public event Action<string>? OnMessageReceived;
+
+        public Client(int port = 9000)
+        {
+            Port = port;
+        }
 
         public void TryConnect(string ip)
         {
@@ -25,7 +30,7 @@ namespace SincroPelis
             {
                 //if(socketClient.Connected)
 
-                socketClient.Connect(IPAddress.Parse(ip), Server.PORT);
+                socketClient.Connect(IPAddress.Parse(ip), Port);
                 socketClient.BeginReceive(_buffer, 0, _BUFFER_SIZE, SocketFlags.None, ReceiveCallback, socketClient);
                 Logger.Info($"Client connected to server as {Environment.UserName}");
 

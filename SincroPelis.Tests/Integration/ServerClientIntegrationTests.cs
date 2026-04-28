@@ -9,18 +9,12 @@ public class ServerClientIntegrationTests : IDisposable
 {
     private Server? _server;
     private Client? _client;
-    private int _originalServerPort;
-    private int _originalClientPort;
     private int _testPort;
 
     public ServerClientIntegrationTests()
     {
         Logger.Initialize();
-        _originalServerPort = Server.PORT;
-        _originalClientPort = Client.PORT;
         _testPort = GetAvailablePort();
-        Server.PORT = _testPort;
-        Client.PORT = _testPort;
     }
 
     [Fact]
@@ -34,9 +28,14 @@ public class ServerClientIntegrationTests : IDisposable
     [Fact]
     public void StartAndConnect_ShouldEstablishConnection()
     {
-        _server = new Server();
+        _server = new Server(_testPort);
+        _client = new Client(_testPort);
         
-        var action = () => _server.startAndConnect();
+        var action = () =>
+        {
+            _server.start();
+            _client.TryConnect("127.0.0.1");
+        };
         
         action.Should().NotThrow();
     }
@@ -44,11 +43,11 @@ public class ServerClientIntegrationTests : IDisposable
     [Fact]
     public void MultipleClients_CanConnect()
     {
-        _server = new Server();
+        _server = new Server(_testPort);
         _server.start();
         
-        var client1 = new Client();
-        var client2 = new Client();
+        var client1 = new Client(_testPort);
+        var client2 = new Client(_testPort);
         
         var action1 = () => client1.TryConnect("127.0.0.1");
         var action2 = () => client2.TryConnect("127.0.0.1");
@@ -83,9 +82,7 @@ public class ServerClientIntegrationTests : IDisposable
             _client?.TrySend("stop");
         }
         catch { }
-        
-        Server.PORT = _originalServerPort;
-        Client.PORT = _originalClientPort;
+
         Logger.Shutdown();
     }
 }

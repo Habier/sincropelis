@@ -10,12 +10,12 @@ namespace SincroPelis.Tests.Unit;
 [Collection("Sequential")]
 public class ClientTests : IDisposable
 {
-    private int _originalPort;
+    private readonly Client _client;
 
     public ClientTests()
     {
         Logger.Initialize();
-        _originalPort = Client.PORT;
+        _client = new Client();
     }
 
     [Fact]
@@ -28,15 +28,13 @@ public class ClientTests : IDisposable
     [Fact]
     public void DefaultPort_ShouldBe9000()
     {
-        Client.PORT.Should().Be(9000);
+        _client.Port.Should().Be(9000);
     }
 
     [Fact]
     public void TryConnect_ShouldNotThrow_WhenInvalidIp()
     {
-        var client = new Client();
-        
-        var action = () => client.TryConnect("256.256.256.256");
+        var action = () => _client.TryConnect("256.256.256.256");
         
         action.Should().NotThrow();
     }
@@ -44,9 +42,7 @@ public class ClientTests : IDisposable
     [Fact]
     public void TrySend_ShouldNotThrow_WhenNotConnected()
     {
-        var client = new Client();
-        
-        var action = () => client.TrySend("test");
+        var action = () => _client.TrySend("test");
         
         action.Should().NotThrow();
     }
@@ -54,10 +50,9 @@ public class ClientTests : IDisposable
     [Fact]
     public void TryConnect_ShouldNotThrow_WhenValidIpButNoServer()
     {
-        var client = new Client();
-        Client.PORT = GetAvailablePort();
+        _client.Port = GetAvailablePort();
         
-        var action = () => client.TryConnect("127.0.0.1");
+        var action = () => _client.TryConnect("127.0.0.1");
         
         action.Should().NotThrow();
     }
@@ -65,9 +60,7 @@ public class ClientTests : IDisposable
     [Fact]
     public void TrySend_ShouldWorkWithEmptyMessage()
     {
-        var client = new Client();
-        
-        var action = () => client.TrySend();
+        var action = () => _client.TrySend();
         
         action.Should().NotThrow();
     }
@@ -83,7 +76,6 @@ public class ClientTests : IDisposable
 
     public void Dispose()
     {
-        Client.PORT = _originalPort;
         Logger.Shutdown();
     }
 }

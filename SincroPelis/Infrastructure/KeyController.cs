@@ -134,7 +134,6 @@ namespace SincroPelis
         public static void Log(string msg)
         {
             Logger.Info(msg);
-            Program.myForm?.SendDebug(msg);
         }
     }
 }

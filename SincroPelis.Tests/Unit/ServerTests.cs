@@ -7,12 +7,12 @@ namespace SincroPelis.Tests.Unit;
 
 public class ServerTests : IDisposable
 {
-    private int _originalPort;
+    private readonly Server _server;
 
     public ServerTests()
     {
         Logger.Initialize();
-        _originalPort = Server.PORT;
+        _server = new Server();
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class ServerTests : IDisposable
     [Fact]
     public void DefaultPort_ShouldBeDefined()
     {
-        Server.PORT.Should().BeGreaterThan(0);
+        _server.Port.Should().BeGreaterThan(0);
     }
 
     private static int GetAvailablePort()
@@ -47,7 +47,6 @@ public class ServerTests : IDisposable
 
     public void Dispose()
     {
-        Server.PORT = _originalPort;
         Logger.Shutdown();
     }
 }
